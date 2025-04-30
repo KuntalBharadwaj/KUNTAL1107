@@ -1,0 +1,79 @@
+package com.cg.cred_metric.models;
+
+import jakarta.persistence.*;
+import lombok.*;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.UUID;
+
+@Entity
+@Table(name = "users")
+@NoArgsConstructor
+@Data
+public class User implements UserDetails {
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)  // Automatically generate UUID
+    private Long userId;
+
+    private String name;
+    private String email;
+    private String password;
+    private String token;
+    private LocalDate dateOfBirth;
+
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
+    // Getters and Setters
+
+    @PrePersist
+    public void onCreate() {
+        this.createdAt = LocalDateTime.now();  // Set createdAt when the entity is created
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    public void onUpdate() {
+        this.updatedAt = LocalDateTime.now();  // Set updatedAt when the entity is updated
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        // Return roles or authorities for the user
+        return null; // For example, roles/permissions
+    }
+
+    @Override
+    public String getPassword() {
+        return this.password;
+    }
+
+    @Override
+    public String getUsername() {
+        return this.email;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true; // Logic for account expiration
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true; // Logic for account lock
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true; // Logic for credential expiration
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true; // Logic for account enabling/disabling (you can modify based on your requirements)
+    }
+}
