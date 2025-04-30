@@ -49,10 +49,10 @@ public class GlobalExceptionHandler {
     }
 
     // handle expired jwt token
-    @ExceptionHandler(ExpiredJwtException.class)
-    public ResponseEntity<?> handleExpiredToken(ExpiredJwtException ex) {
+    @ExceptionHandler(ExpiredTokenException.class)
+    public ResponseEntity<Map<String, String>> handleExpiredTokenException(ExpiredTokenException ex) {
         Map<String, String> error = new HashMap<>();
-        error.put("error", "Token has expired. Please login again to get a new token.");
+        error.put("error", ex.getMessage());
         return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
     }
 }

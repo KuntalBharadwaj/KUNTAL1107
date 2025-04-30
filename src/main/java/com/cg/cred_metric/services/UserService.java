@@ -103,6 +103,7 @@ public class UserService implements IUserService {
         String token = jwtUtils.createJWTToken(user.getEmail());
 
         user.setToken(token);
+        userRespository.save(user);
 
         String loginMessage = "🔑 **Your Login was Successful!** 🔑\n\n" +
                 "Hi **" + user.getName() + "**, \n\n" +

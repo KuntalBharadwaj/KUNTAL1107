@@ -1,9 +1,11 @@
 package com.cg.cred_metric.utils;
 
 
+import com.cg.cred_metric.exceptions.ExpiredTokenException;
 import com.cg.cred_metric.models.User;
 import com.cg.cred_metric.repositories.UserRespository;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -58,22 +60,31 @@ public class JWTUtils {
 
     // Validate Token
     public boolean validateJWTToken(String token, String userEmail) {
-        final String email = extractEmail(token);
-        boolean isTokenPresent = true;
-        User user = userRepository.findByEmail(email).orElse(null);
+        String email = extractEmail(token);
 
-        if(user != null && user.getToken()==null) {
-            isTokenPresent = false;
+        if (!email.equals(userEmail)) {
+            throw new ExpiredJwtException(null, null, "Invalid token or mismatched email.");
         }
 
-        final boolean valid = Jwts.parserBuilder()
-                .setSigningKey(SECRET_KEY.getBytes())
+        User user = userRepository.findByEmail(email).orElse(null);
+        if (user == null || user.getToken() == null) {
+            throw new ExpiredTokenException("Token has expired. Please login again to get a new token.");
+        }
+
+        if (!user.getToken().equals(token)) {
+            throw new ExpiredTokenException("Token has expired. Please login again to get a new token.");
+        }
+
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(SECRET_KEY.getBytes(StandardCharsets.UTF_8))
                 .build()
                 .parseClaimsJws(token)
-                .getBody()
-                .getExpiration()
-                .before(new Date());
+                .getBody();
 
-    return (email.equals(userEmail) && !valid && isTokenPresent);
+        if (claims.getExpiration().before(new Date())) {
+            throw new ExpiredTokenException("Token has expired. Please login again to get a new token.");
+        }
+
+        return true;
     }
 }
