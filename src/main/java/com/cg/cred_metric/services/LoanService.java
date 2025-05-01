@@ -62,7 +62,7 @@ public class LoanService {
         return loanRepository.save(loan);
     }
 
-
+    // Get all loans
     public List<LoanResponseDTO> getAllLoansByEmail(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -83,4 +83,45 @@ public class LoanService {
             return dto;
         }).toList();
     }
+
+    // Update Loan
+    public Loan updateLoan(Long loanId, String email, LoanRequestDTO dto) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Loan loan = loanRepository.findById(loanId)
+                .orElseThrow(() -> new RuntimeException("Loan not found"));
+
+        if (!loan.getUser().getUserId().equals(user.getUserId())) {
+            throw new RuntimeException("Unauthorized to update this loan");
+        }
+
+        // Update allowed fields
+        loan.setLoanType(Loan.LoanType.valueOf(dto.getLoanType().toUpperCase()));
+        loan.setPrincipalAmount(dto.getPrincipalAmount());
+        loan.setInterestRate(dto.getInterestRate());
+        loan.setStartDate(dto.getStartDate());
+        loan.setEndDate(dto.getEndDate());
+        loan.setEmiAmount(dto.getEmiAmount());
+        loan.setEmiDueDate(dto.getEmiDueDate());
+
+        String updateMessage = "📢 **Loan Updated!** 📢\n\n" +
+                "Hi **" + user.getName() + "**,\n\n" +
+                "Your loan details have been updated. Here are the latest loan details:\n\n" +
+                "**Loan Type:** " + dto.getLoanType() + "\n" +
+                "**Principal Amount:** ₹" + dto.getPrincipalAmount() + "\n" +
+                "**Interest Rate:** " + dto.getInterestRate() + "%\n" +
+                "**Start Date:** " + dto.getStartDate() + "\n" +
+                "**End Date:** " + dto.getEndDate() + "\n" +
+                "**EMI Amount:** ₹" + dto.getEmiAmount() + "\n" +
+                "**Next EMI Due Date:** " + dto.getEmiDueDate() + "\n\n" +
+                "If you didn’t request this update, please reach out to our support team immediately.\n\n" +
+                "Warm regards,\n" +
+                "**Cred Metric Team** 🔐";
+
+        mailService.sendMail(user.getEmail(), "📝 Loan Updated Successfully", updateMessage);
+
+        return loanRepository.save(loan);
+    }
+
 }

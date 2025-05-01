@@ -37,5 +37,12 @@ public class LoanController {
         return ResponseEntity.ok(loans);
     }
 
+    @PutMapping("/{loanId}")
+    public ResponseEntity<String> updateLoan(@PathVariable Long loanId,
+                                             Authentication authentication,
+                                             @Valid @RequestBody LoanRequestDTO loanRequestDTO) {
+        loanService.updateLoan(loanId, authentication.getName(), loanRequestDTO);
+        return ResponseEntity.ok("Loan updated successfully");
+    }
 
 }
