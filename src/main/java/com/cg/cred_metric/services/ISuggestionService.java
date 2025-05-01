@@ -7,5 +7,5 @@ import java.time.YearMonth;
 import com.cg.cred_metric.dtos.SuggestionResponse;
 
 public interface ISuggestionService {
-    SuggestionResponse getSuggestionsForUserAndMonth(Long userId, YearMonth month);
+    SuggestionResponse getSuggestionsForUserAndMonth(String email, YearMonth month);
 }

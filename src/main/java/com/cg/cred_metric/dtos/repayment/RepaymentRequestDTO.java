@@ -1,5 +1,6 @@
 package com.cg.cred_metric.dtos.repayment;
 
+import com.cg.cred_metric.models.Repayment;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -14,9 +15,9 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RepaymentRequestDTO {
-    @NotBlank(message = "Repayment type is required")
-    @Pattern(regexp = "CREDIT_CARD|LOAN", message = "Repayment type must be CREDIT_CARD or LOAN")
-    private String repaymentType;
+
+    @NotNull(message = "Repayment type is required")
+    private Repayment.RepaymentType repaymentType;
 
     @NotNull(message = "Repayment type ID is required") // Loan ID or Credit Card ID
     private Long repaymentTypeID;
@@ -24,10 +25,6 @@ public class RepaymentRequestDTO {
     @NotNull(message = "Payment date is required")
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate paymentDate;
-
-    @NotBlank(message = "Repayment status is required")
-    @Pattern(regexp = "MISSED|PENDING|ONTIME", message = "Repayment status must be MISSED or PENDING or ONTIME")
-    private String repaymentStatus;
 
     @NotNull(message = "Repayment amount paid is required")
     private Double amountPaid;
