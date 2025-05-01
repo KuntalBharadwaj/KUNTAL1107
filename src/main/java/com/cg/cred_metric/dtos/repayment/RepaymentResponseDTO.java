@@ -7,6 +7,7 @@ import java.time.LocalDate;
 
 @Data
 public class RepaymentResponseDTO {
+<<<<<<< HEAD
     private String repaymentType;
     private Long repaymentTypeID;
     private LocalDate paymentDate;
@@ -18,6 +19,19 @@ public class RepaymentResponseDTO {
         this.repaymentTypeID = repayment.getRepaymentTypeID();
         this.paymentDate = repayment.getPaymentDate();
         this.repaymentStatus = String.valueOf(repayment.getRepaymentStatus());
+=======
+    private Repayment.RepaymentType repaymentType;
+    private Long repaymentTypeID;
+    private LocalDate paymentDate;
+    private Repayment.RepaymentStatus repaymentStatus;
+    private Double amountPaid;
+
+    public RepaymentResponseDTO(Repayment repayment) {
+        this.repaymentType = repayment.getRepaymentType();
+        this.repaymentTypeID = repayment.getRepaymentTypeID();
+        this.paymentDate = repayment.getPaymentDate();
+        this.repaymentStatus = repayment.getRepaymentStatus();
+>>>>>>> naman
         this.amountPaid = repayment.getAmountPaid();
     }
 }

@@ -33,7 +33,7 @@ public class Repayment {
 
     private Double amountPaid;
 
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     public enum RepaymentType {
         CREDIT_CARD,
@@ -47,10 +47,9 @@ public class Repayment {
     }
 
     public Repayment(RepaymentRequestDTO repaymentRequestDTO) {
-        this.repaymentType = RepaymentType.valueOf(repaymentRequestDTO.getRepaymentType());
+        this.repaymentType = repaymentRequestDTO.getRepaymentType();
         this.repaymentTypeID = repaymentRequestDTO.getRepaymentTypeID();
         this.paymentDate = repaymentRequestDTO.getPaymentDate();
-        this.repaymentStatus = RepaymentStatus.valueOf(repaymentRequestDTO.getRepaymentStatus());
         this.amountPaid = repaymentRequestDTO.getAmountPaid();
     }
 }
