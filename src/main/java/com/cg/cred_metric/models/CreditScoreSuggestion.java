@@ -12,7 +12,7 @@ import java.time.YearMonth;
 @NoArgsConstructor
 public class CreditScoreSuggestion {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy  = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)

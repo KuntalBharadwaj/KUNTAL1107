@@ -6,6 +6,7 @@ import java.time.LocalDate;
 
 @Data
 public class LoanResponseDTO {
+    private Long id;
     private String loanType;
     private Double principalAmount;
     private Double interestRate;

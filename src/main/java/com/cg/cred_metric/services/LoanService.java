@@ -72,6 +72,7 @@ public class LoanService {
         // Loan Entity → LoanResponseDTO me convert karo
         return loans.stream().map(loan -> {
             LoanResponseDTO dto = new LoanResponseDTO();
+            dto.setId(loan.getLoanId());
             dto.setLoanType(loan.getLoanType().name());
             dto.setPrincipalAmount(loan.getPrincipalAmount());
             dto.setInterestRate(loan.getInterestRate());
