@@ -7,7 +7,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDate;
 
+import java.util.List;
+
 public interface RepaymentRepository extends JpaRepository<Repayment, Long> {
+    List<Repayment> findByUser(User user);
+
     long countByUserAndRepaymentTypeAndRepaymentTypeIDAndRepaymentStatusAndPaymentDateBetween(
             User user,
             Repayment.RepaymentType repaymentType,
@@ -16,5 +20,4 @@ public interface RepaymentRepository extends JpaRepository<Repayment, Long> {
             LocalDate startDate,
             LocalDate endDate
     );
-
 }
