@@ -28,7 +28,6 @@ public class CreditCardService {
     @Transactional
     public CreditCard addCreditCard(String email, CreditCardDTO creditCardDTO) {
         // Check if user exists
-
         User user = userRespository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -38,6 +37,8 @@ public class CreditCardService {
         creditCard.setCurrentBalance(creditCardDTO.getCurrentBalance());
         creditCard.setIssueDate(creditCardDTO.getIssueDate());
         creditCard.setExpiryDate(creditCardDTO.getExpiryDate());
+        creditCard.setCardBillAmount(creditCardDTO.getCardBillAmount());
+        creditCard.setBillDueDate(creditCardDTO.getBillDueDate());
 
         CreditCard savedCard = creditCardRepository.save(creditCard);
 
@@ -49,17 +50,16 @@ public class CreditCardService {
                 "Current Balance: ₹" + creditCardDTO.getCurrentBalance() + "\n" +
                 "Issue Date:" + creditCardDTO.getIssueDate() + "\n" +
                 "Expiry Date: " + creditCardDTO.getExpiryDate() + "\n\n" +
+                "Card Bill Amount: " + creditCardDTO.getCardBillAmount() + "\n" +
+                "Card Bill Due Date: " + creditCardDTO.getBillDueDate() + "\n" +
                 "We’re excited to have you on board. Please review your card details carefully. If you notice anything unusual or didn’t authorize this card, contact our support team immediately. 🔒\n\n" +
                 "Warm regards,\n" +
                 "Cred Metric Team 🚀";
 
         mailService.sendMail(user.getEmail(), "💳 Your Credit Card Has Been Added!", creditCardMessage);
 
-
         // Save the card
         return creditCard;
-
-
     }
 
      //Update an existing credit card
@@ -75,6 +75,8 @@ public class CreditCardService {
         creditCard.setCurrentBalance(creditCardDTO.getCurrentBalance());
         creditCard.setIssueDate(creditCardDTO.getIssueDate());
         creditCard.setExpiryDate(creditCardDTO.getExpiryDate());
+        creditCard.setCardBillAmount(creditCardDTO.getCardBillAmount());
+        creditCard.setBillDueDate(creditCardDTO.getBillDueDate());
 
         return creditCardRepository.save(creditCard);
     }

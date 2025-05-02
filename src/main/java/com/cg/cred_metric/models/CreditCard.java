@@ -35,4 +35,8 @@ public class CreditCard {
     public void prePersist() {
         this.createdAt = LocalDateTime.now();
     }
+
+    private Double cardBillAmount;
+
+    private LocalDate billDueDate;
 }
