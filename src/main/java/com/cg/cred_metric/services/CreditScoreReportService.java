@@ -1,10 +1,7 @@
 package com.cg.cred_metric.services;
 
 import com.cg.cred_metric.models.*;
-import com.cg.cred_metric.repositories.CreditCardRepository;
-import com.cg.cred_metric.repositories.LoanRepository;
-import com.cg.cred_metric.repositories.RepaymentRepository;
-import com.cg.cred_metric.repositories.SuggestionRepository;
+import com.cg.cred_metric.repositories.*;
 import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.*;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +12,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +22,7 @@ public class CreditScoreReportService {
     private final SuggestionRepository suggestionRepository;
     private final LoanRepository loanRepository;
     private final CreditCardRepository creditCardRepository;
+    private final CreditScoreRepository creditScoreRepository;
 
     public byte[] generateMonthlyReport(User user, YearMonth month) throws Exception {
         LocalDate start = month.atDay(1);
@@ -32,13 +31,13 @@ public class CreditScoreReportService {
         List<Repayment> allRepayments = repaymentRepository.findByUserAndPaymentDateBetween(user, start, end);
         CreditScoreSuggestion suggestion = suggestionRepository.findByUserAndSuggestionMonth(user, month);
         List<CreditCard> allCreditCard = creditCardRepository.findByUser(user);
-
+        Optional<CreditScore> creditScore = creditScoreRepository.findByUser(user);
 
         List<Repayment> loanPayments = allRepayments.stream()
                 .filter(r -> r.getRepaymentType() == Repayment.RepaymentType.LOAN)
                 .toList();
 
-        //Now for creadit card
+        //Now for credit card
 
         List<Repayment> creditCardPayments = allRepayments.stream()
                 .filter(r -> r.getRepaymentType() == Repayment.RepaymentType.CREDIT_CARD)
@@ -73,6 +72,11 @@ public class CreditScoreReportService {
         document.add(new Paragraph("All Credit Card Summary", subHeader));
         document.add(generateCreditCardTable(allCreditCard));
 
+        // Credit Score Table
+        document.add(Chunk.NEWLINE);
+        document.add(new Paragraph("All Credit Score Summary", subHeader));
+        document.add(generateCreditScoreTable(creditScore));
+        document.add(Chunk.NEWLINE);
 
         // Suggestions
         document.add(new Paragraph("Suggestions", subHeader));
@@ -183,7 +187,18 @@ public class CreditScoreReportService {
         return table;
     }
 
+    private PdfPTable generateCreditScoreTable(Optional<CreditScore> creditScore) throws DocumentException {
+        PdfPTable table = new PdfPTable(1);
+        table.setWidthPercentage(40);
+        table.setHorizontalAlignment(Element.ALIGN_LEFT);
 
+        table.addCell(new PdfPCell(new Phrase("Credit Score", new Font(Font.FontFamily.HELVETICA, 12))));
+        if (creditScore.isPresent()) {
+            table.addCell(new PdfPCell(new Phrase(String.valueOf(creditScore.get().getScore()), new Font(Font.FontFamily.HELVETICA, 12))));
+        }
+        else {
+            table.addCell(new PdfPCell(new Phrase("No credit score available", new Font(Font.FontFamily.HELVETICA, 12))));
+        }
+        return table;
+    }
 }
-
-
