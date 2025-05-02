@@ -1,5 +1,6 @@
 package com.cg.cred_metric.dtos.Loan;
 
+import com.cg.cred_metric.models.Loan;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -15,4 +16,17 @@ public class LoanResponseDTO {
     private Double emiAmount;
     private LocalDate emiDueDate;
     private String status;
+
+
+    public LoanResponseDTO(Loan loan) {
+        this.id = loan.getLoanId();
+        this.loanType = String.valueOf(loan.getLoanType());
+        this.principalAmount = loan.getPrincipalAmount();
+        this.interestRate = loan.getInterestRate();
+        this.startDate = loan.getStartDate();
+        this.endDate = loan.getEndDate();
+        this.emiAmount = loan.getEmiAmount();
+        this.emiDueDate = loan.getEmiDueDate();
+        this.status = loan.getStatus().toString();
+    }
 }
