@@ -21,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import com.cg.cred_metric.models.Loan.LoanStatus;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Objects;
 
@@ -94,6 +95,8 @@ public class RepaymentService implements IRepaymentService {
             dueDate = creditCard.getBillDueDate();
             // Update credit card bill due date
             creditCard.setBillDueDate(creditCard.getBillDueDate().plusMonths(1));
+            creditCard.setCardBillAmount(repaymentRequestDTO.getAmountPaid() - creditCard.getCardBillAmount());
+            creditCard.setCurrentBalance(creditCard.getCurrentBalance().add(BigDecimal.valueOf(repaymentRequestDTO.getAmountPaid())));
 
             creditCardRepository.save(creditCard);
         }
@@ -141,6 +144,15 @@ public class RepaymentService implements IRepaymentService {
 
         mailService.sendMail(user.getEmail(), "Your repayment has been created successfully", repaymentMessage);
 
-        return new ResponseEntity<>(new RepaymentResponseDTO(repayment), HttpStatus.CREATED);
+        return new ResponseEntity<>(
+                new RepaymentResponseDTO(
+                        repayment,
+                        repaymentSource instanceof Loan
+                                ? ((Loan) repaymentSource).getEmiDueDate()
+                                : ((CreditCard) repaymentSource).getBillDueDate()
+                ),
+                HttpStatus.CREATED
+        );
+
     }
 }
