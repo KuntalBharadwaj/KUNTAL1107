@@ -1,6 +1,7 @@
 package com.cg.cred_metric.services;
 
 import com.cg.cred_metric.dtos.CreditCard.CreditCardDTO;
+import com.cg.cred_metric.exceptions.ResourceNotFoundException;
 import com.cg.cred_metric.models.CreditCard;
 import com.cg.cred_metric.models.User;
 import com.cg.cred_metric.repositories.CreditCardRepository;
@@ -29,7 +30,7 @@ public class CreditCardService {
     public CreditCard addCreditCard(String email, CreditCardDTO creditCardDTO) {
         // Check if user exists
         User user = userRespository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         CreditCard creditCard = new CreditCard();
         creditCard.setUser(user);
@@ -67,7 +68,7 @@ public class CreditCardService {
     public CreditCard updateCreditCard(Long cardId, CreditCardDTO creditCardDTO) {
         Optional<CreditCard> optionalCreditCard = creditCardRepository.findById(cardId);
         if (optionalCreditCard.isEmpty()) {
-            throw new IllegalArgumentException("Credit card not found");
+            throw new ResourceNotFoundException("Credit card not found");
         }
 
         CreditCard creditCard = optionalCreditCard.get();
@@ -85,7 +86,7 @@ public class CreditCardService {
 
     public List<CreditCard> getCreditCardsForUser(String email) {
         User user = userRespository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         return creditCardRepository.findByUser(user);
     }
@@ -94,7 +95,7 @@ public class CreditCardService {
     public CreditCard getCreditCardById(Long cardId) {
         Optional<CreditCard> creditCard = creditCardRepository.findById(cardId);
         if (creditCard.isEmpty()) {
-            throw new IllegalArgumentException("Credit card not found");
+            throw new ResourceNotFoundException("Credit card not found");
         }
         return creditCard.get();
     }
