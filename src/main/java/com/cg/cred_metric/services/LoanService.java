@@ -11,6 +11,8 @@ import com.cg.cred_metric.utils.MailService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -27,7 +29,7 @@ public class LoanService {
     private final MailService mailService;
 
     @Transactional
-    public Loan createLoan(String email, LoanRequestDTO dto) {
+    public ResponseEntity<LoanResponseDTO> createLoan(String email, LoanRequestDTO dto) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -59,7 +61,11 @@ public class LoanService {
 
         mailService.sendMail(user.getEmail(), "📄 Your Loan Has Been Created Successfully!", loanMessage);
         
-        return loanRepository.save(loan);
+         loanRepository.save(loan);
+
+         LoanResponseDTO loanResponseDTO = new LoanResponseDTO(loan);
+
+         return new ResponseEntity<>(loanResponseDTO, HttpStatus.CREATED);
     }
 
     // Get all loans
@@ -71,16 +77,7 @@ public class LoanService {
 
         // Loan Entity → LoanResponseDTO me convert karo
         return loans.stream().map(loan -> {
-            LoanResponseDTO dto = new LoanResponseDTO();
-            dto.setId(loan.getLoanId());
-            dto.setLoanType(loan.getLoanType().name());
-            dto.setPrincipalAmount(loan.getPrincipalAmount());
-            dto.setInterestRate(loan.getInterestRate());
-            dto.setStartDate(loan.getStartDate());
-            dto.setEndDate(loan.getEndDate());
-            dto.setEmiAmount(loan.getEmiAmount());
-            dto.setEmiDueDate(loan.getEmiDueDate());
-            dto.setStatus(loan.getStatus().name());
+            LoanResponseDTO dto = new LoanResponseDTO(loan);
             return dto;
         }).toList();
     }

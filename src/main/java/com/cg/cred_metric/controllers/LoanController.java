@@ -23,11 +23,10 @@ public class LoanController {
     private LoanService loanService;
 
     @PostMapping
-    public ResponseEntity<String> createLoan(Authentication authentication,
-                                             @Valid @RequestBody LoanRequestDTO loanRequestDTO){
+    public ResponseEntity<LoanResponseDTO> createLoan(Authentication authentication,
+                                             @Valid @RequestBody LoanRequestDTO loanRequestDTO) {
 
-        loanService.createLoan(authentication.getName(),loanRequestDTO);
-        return new ResponseEntity<>("Loan Details Added ", HttpStatus.CREATED);
+        return loanService.createLoan(authentication.getName(), loanRequestDTO);
     }
 
     @GetMapping

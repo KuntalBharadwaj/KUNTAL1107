@@ -141,6 +141,15 @@ public class RepaymentService implements IRepaymentService {
 
         mailService.sendMail(user.getEmail(), "Your repayment has been created successfully", repaymentMessage);
 
-        return new ResponseEntity<>(new RepaymentResponseDTO(repayment), HttpStatus.CREATED);
+        return new ResponseEntity<>(
+                new RepaymentResponseDTO(
+                        repayment,
+                        repaymentSource instanceof Loan
+                                ? ((Loan) repaymentSource).getEmiDueDate()
+                                : ((CreditCard) repaymentSource).getBillDueDate()
+                ),
+                HttpStatus.CREATED
+        );
+
     }
 }

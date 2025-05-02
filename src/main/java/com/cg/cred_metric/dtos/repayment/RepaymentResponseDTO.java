@@ -13,12 +13,14 @@ public class RepaymentResponseDTO {
     private LocalDate paymentDate;
     private Repayment.RepaymentStatus repaymentStatus;
     private Double amountPaid;
+    private LocalDate nextPaymentDate;
 
-    public RepaymentResponseDTO(Repayment repayment) {
+    public RepaymentResponseDTO(Repayment repayment, LocalDate nextPaymentDate) {
         this.repaymentType = repayment.getRepaymentType();
         this.repaymentTypeID = repayment.getRepaymentTypeID();
         this.paymentDate = repayment.getPaymentDate();
         this.repaymentStatus = repayment.getRepaymentStatus();
         this.amountPaid = repayment.getAmountPaid();
+        this.nextPaymentDate = nextPaymentDate;
     }
 }
