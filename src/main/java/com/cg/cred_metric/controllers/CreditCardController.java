@@ -11,6 +11,8 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 import java.util.stream.Collectors;
 
 
@@ -53,6 +55,18 @@ public class CreditCardController {
                                                              @PathVariable Long cardId) {
         CreditCard card = creditCardService.getCreditCardById(cardId);
         return ResponseEntity.ok(new CreditCardResponseDTO(card));
+    }
+
+    @DeleteMapping("/")
+    public ResponseEntity<?> deleteCreditCardsByUser(Authentication authentication) {
+        creditCardService.deleteCreditCardsByUser(authentication.getName());
+
+        return ResponseEntity.ok(
+                Map.of(
+                        "status", 200,
+                        "data", Map.of("message", "Credit Cards Deleted successfully")
+                )
+        );
     }
 }
 

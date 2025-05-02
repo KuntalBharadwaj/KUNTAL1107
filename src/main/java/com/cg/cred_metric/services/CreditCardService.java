@@ -99,5 +99,13 @@ public class CreditCardService {
         }
         return creditCard.get();
     }
+
+    // Delete Card By User
+    @Transactional
+    public void deleteCreditCardsByUser(String email) {
+        User user = userRespository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        creditCardRepository.deleteByUser(user);
+    }
 }
 

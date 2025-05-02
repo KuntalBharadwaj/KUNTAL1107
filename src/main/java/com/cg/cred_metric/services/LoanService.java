@@ -3,6 +3,7 @@ package com.cg.cred_metric.services;
 
 import com.cg.cred_metric.dtos.Loan.LoanRequestDTO;
 import com.cg.cred_metric.dtos.Loan.LoanResponseDTO;
+import com.cg.cred_metric.exceptions.ResourceNotFoundException;
 import com.cg.cred_metric.models.Loan;
 import com.cg.cred_metric.models.User;
 import com.cg.cred_metric.repositories.LoanRepository;
@@ -120,6 +121,14 @@ public class LoanService {
         mailService.sendMail(user.getEmail(), "📝 Loan Updated Successfully", updateMessage);
 
         return loanRepository.save(loan);
+    }
+
+    // Delete Loan By User
+    @Transactional
+    public void deleteLoansByUser(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        loanRepository.deleteByUser(user);
     }
 
 }
