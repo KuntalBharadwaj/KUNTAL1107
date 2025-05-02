@@ -40,17 +40,12 @@ public class CreditCardController {
         return ResponseEntity.ok(new CreditCardResponseDTO(updatedCard));
     }
 
-    // GET /creditcards/user/{userId} — Get all credit cards for a user
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<CreditCardResponseDTO> getCardsByUserId(Authentication authentication,
-                                                                        @PathVariable Long userId) {
-        CreditCard card = creditCardService.getCreditCardById(userId);
-        return ResponseEntity.ok(new CreditCardResponseDTO(card));
+    // GET /creditcards — Get all credit cards for a user
+    @GetMapping("/")
+    public ResponseEntity<List<CreditCard>> getCardsByUser(Authentication authentication) {
+        List<CreditCard> cards = creditCardService.getCreditCardsForUser(authentication.getName());
+        return ResponseEntity.ok(cards);
     }
-
-
-
-
 
     // GET /creditcards/{cardId} — Get a specific credit card by card ID
     @GetMapping("/{cardId}")
