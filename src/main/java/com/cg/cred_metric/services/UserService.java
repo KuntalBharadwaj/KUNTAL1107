@@ -1,9 +1,8 @@
 package com.cg.cred_metric.services;
 
-import com.cg.cred_metric.dtos.AuthResponseDTO;
-import com.cg.cred_metric.dtos.LoginDTO;
-import com.cg.cred_metric.dtos.RegisterDTO;
+import com.cg.cred_metric.dtos.*;
 import com.cg.cred_metric.exceptions.InvalidDateFormatException;
+import com.cg.cred_metric.exceptions.ResourceNotFoundException;
 import com.cg.cred_metric.models.User;
 import com.cg.cred_metric.repositories.UserRespository;
 import com.cg.cred_metric.utils.JWTUtils;
@@ -118,5 +117,30 @@ public class UserService implements IUserService {
         return new ResponseEntity<>(responseDTO, HttpStatus.OK);
     }
 
+    @Override
+    public ResponseEntity<ChangePasswordResponseDTO> changePassword(String email, ChangePasswordRequestDTO request) {
+        User user = userRespository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException( "User not found Exception " + email));
+
+        // 1. Old password check
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+            return new ResponseEntity<>(new ChangePasswordResponseDTO(400, "Old password is incorrect"), HttpStatus.BAD_REQUEST);
+        }
+
+        // 2. New password same as old
+        if (request.getOldPassword().equals(request.getNewPassword())) {
+            return new ResponseEntity<>(new ChangePasswordResponseDTO(400, "New password should not be same as old password"), HttpStatus.BAD_REQUEST);
+        }
+
+        // 3. Confirm password mismatch
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            return new ResponseEntity<>(new ChangePasswordResponseDTO(400, "New password and confirm password do not match"), HttpStatus.BAD_REQUEST);
+        }
+
+        // All validations passed, update password
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRespository.save(user);
+
+        return new ResponseEntity<>(new ChangePasswordResponseDTO(200, "Password changed successfully"), HttpStatus.OK);
+    }
 
 }

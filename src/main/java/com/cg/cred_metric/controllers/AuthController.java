@@ -1,13 +1,12 @@
 package com.cg.cred_metric.controllers;
 
 
-import com.cg.cred_metric.dtos.AuthResponseDTO;
-import com.cg.cred_metric.dtos.LoginDTO;
-import com.cg.cred_metric.dtos.RegisterDTO;
+import com.cg.cred_metric.dtos.*;
 import com.cg.cred_metric.services.IUserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -34,5 +33,13 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponseDTO> login(@Valid @RequestBody LoginDTO loginDTO){
         return userService.loginUser(loginDTO);
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<ChangePasswordResponseDTO> changePassword(
+            Authentication authentication,
+            @RequestBody ChangePasswordRequestDTO requestDTO) {
+        String email = authentication.getName(); // this gets the username/email from JWT token
+        return userService.changePassword(email, requestDTO);
     }
 }
