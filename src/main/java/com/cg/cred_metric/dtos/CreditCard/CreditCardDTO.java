@@ -1,5 +1,6 @@
 package com.cg.cred_metric.dtos.CreditCard;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import jakarta.validation.constraints.*;
@@ -24,5 +25,10 @@ public class CreditCardDTO {
     @NotNull(message = "Expiry Date cannot be null")
     private LocalDate expiryDate;
 
-}
+    @NotNull(message = "Card Bill Amount cannot be null")
+    private Double cardBillAmount;
 
+    @NotNull(message = "Bill Due Date cannot be null")
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate billDueDate;
+}

@@ -22,8 +22,7 @@ public class RepaymentController {
     private RepaymentService repaymentService;
 
     @PostMapping
-    public ResponseEntity<String> createRepayment(Authentication authentication, @Valid @RequestBody RepaymentRequestDTO repaymentRequestDTO) {
-        repaymentService.createRepayment(authentication.getName(), repaymentRequestDTO);
-        return new ResponseEntity<>("Repayment Added Successfully", HttpStatus.CREATED);
+    public ResponseEntity<RepaymentResponseDTO> createRepayment(Authentication authentication, @Valid @RequestBody RepaymentRequestDTO repaymentRequestDTO) {
+        return repaymentService.createRepayment(authentication.getName(), repaymentRequestDTO);
     }
 }
