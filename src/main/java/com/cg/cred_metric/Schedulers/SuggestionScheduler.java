@@ -38,7 +38,7 @@ public class SuggestionScheduler {
     // Scheduled to run every 2 minutes for testing
     //@Scheduled(cron = "0 0/1 * * * ?")
     // Scheduled to run at the beginning of each month
-   @Scheduled(cron = "0 0 0 1 * ?")
+    @Scheduled(cron = "0 0 0 1 * ?")
     public void generateMonthlySuggestions() {
         log.info("Starting the suggestion generation process...");
 

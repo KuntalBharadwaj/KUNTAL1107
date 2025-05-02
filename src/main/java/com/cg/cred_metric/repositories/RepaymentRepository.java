@@ -6,6 +6,7 @@ import com.cg.cred_metric.models.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import java.util.List;
 
@@ -20,4 +21,5 @@ public interface RepaymentRepository extends JpaRepository<Repayment, Long> {
             LocalDate startDate,
             LocalDate endDate
     );
+    List<Repayment> findByUserAndPaymentDateBetween(User user, LocalDate startDate, LocalDate endDate);
 }
