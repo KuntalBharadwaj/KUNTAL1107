@@ -42,4 +42,16 @@ public class AuthController {
         String email = authentication.getName(); // this gets the username/email from JWT token
         return userService.changePassword(email, requestDTO);
     }
+
+    // Delete User by email
+    @DeleteMapping("/")
+    public ResponseEntity<String> deleteUser(Authentication authentication) {
+        try {
+            userService.deleteUser(authentication.getName());
+            return ResponseEntity.ok("User deleted successfully.");
+        } catch (Exception e) {
+            return ResponseEntity.status(404).body("Error: " + e.getMessage());
+        }
+    }
+
 }

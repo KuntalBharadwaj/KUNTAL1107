@@ -1,5 +1,6 @@
 package com.cg.cred_metric.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
@@ -15,8 +16,9 @@ public class Loan {
     @GeneratedValue
     private Long loanId;
 
-    @ManyToOne(fetch = FetchType.LAZY) // Fetch Meaning: Data is loaded only when needed (on-demand).
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnore
     private User user;
 
     @Enumerated(EnumType.STRING)
