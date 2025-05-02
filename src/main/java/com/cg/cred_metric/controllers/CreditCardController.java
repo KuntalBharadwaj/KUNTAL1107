@@ -11,6 +11,8 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import java.util.stream.Collectors;
+
 
 import java.util.List;
 
@@ -31,26 +33,31 @@ public class CreditCardController {
 
     // PUT /creditcards/{id} — Update an existing credit card
     @PutMapping("/{id}")
-    public ResponseEntity<CreditCard> updateCreditCard(@PathVariable Long id,
-                                                       @Valid @RequestBody CreditCardDTO creditCardDTO) {
+    public ResponseEntity<CreditCardResponseDTO> updateCreditCard(Authentication authentication,
+                                                                  @PathVariable Long id,
+                                                                  @Valid @RequestBody CreditCardDTO creditCardDTO) {
         CreditCard updatedCard = creditCardService.updateCreditCard(id, creditCardDTO);
-        return ResponseEntity.ok(updatedCard);
+        return ResponseEntity.ok(new CreditCardResponseDTO(updatedCard));
     }
 
     // GET /creditcards/user/{userId} — Get all credit cards for a user
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<CreditCard>> getCardsByUserId(Authentication authentication,
-                                                             @PathVariable Long userId) {
-        List<CreditCard> cards = creditCardService.getCreditCardsForUser(authentication.getName());
-        return ResponseEntity.ok(cards);
+    public ResponseEntity<CreditCardResponseDTO> getCardsByUserId(Authentication authentication,
+                                                                        @PathVariable Long userId) {
+        CreditCard card = creditCardService.getCreditCardById(userId);
+        return ResponseEntity.ok(new CreditCardResponseDTO(card));
     }
+
+
+
+
 
     // GET /creditcards/{cardId} — Get a specific credit card by card ID
     @GetMapping("/{cardId}")
-    public ResponseEntity<CreditCard> getCardById(Authentication authentication,
-                                                  @PathVariable Long cardId) {
+    public ResponseEntity<CreditCardResponseDTO> getCardById(Authentication authentication,
+                                                             @PathVariable Long cardId) {
         CreditCard card = creditCardService.getCreditCardById(cardId);
-        return ResponseEntity.ok(card);
+        return ResponseEntity.ok(new CreditCardResponseDTO(card));
     }
 }
 
