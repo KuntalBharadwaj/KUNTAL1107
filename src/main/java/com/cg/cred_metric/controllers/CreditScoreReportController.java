@@ -17,8 +17,8 @@ public class CreditScoreReportController {
 
     private final CreditScoreReportService reportService;
 
-    @GetMapping("/loan-summary")
-    public void downloadLoanReport(
+    @GetMapping("/summary")
+    public void downloadReport(
             @AuthenticationPrincipal User user,
             @RequestParam("month") @DateTimeFormat(pattern = "yyyy-MM") YearMonth month,
             HttpServletResponse response
@@ -26,7 +26,7 @@ public class CreditScoreReportController {
         try {
             byte[] pdfData = reportService.generateMonthlyReport(user, month);
             response.setContentType("application/pdf");
-            response.setHeader("Content-Disposition", "attachment; filename=Loan_Repayment_Report_" + month + ".pdf");
+            response.setHeader("Content-Disposition", "attachment; filename=Account_Summary_" + month + ".pdf");
             response.getOutputStream().write(pdfData);
         } catch (Exception e) {
             e.printStackTrace();
