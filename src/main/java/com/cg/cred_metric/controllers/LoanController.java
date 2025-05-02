@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RequestMapping("/loans")
@@ -42,6 +43,18 @@ public class LoanController {
                                              @Valid @RequestBody LoanRequestDTO loanRequestDTO) {
         loanService.updateLoan(loanId, authentication.getName(), loanRequestDTO);
         return ResponseEntity.ok("Loan updated successfully");
+    }
+
+    @DeleteMapping("/")
+    public ResponseEntity<?> deleteLoansByUser(Authentication authentication) {
+        loanService.deleteLoansByUser(authentication.getName());
+
+        return ResponseEntity.ok(
+                Map.of(
+                        "status", 200,
+                        "data", Map.of("message", "Loan Deleted successfully")
+                )
+        );
     }
 
 }

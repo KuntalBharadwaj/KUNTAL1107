@@ -9,5 +9,6 @@ import java.util.List;
 public interface CreditCardRepository extends JpaRepository<CreditCard, Long> {
     // Custom method to fetch all credit cards for a specific user
     List<CreditCard> findByUser(User user);
+    void deleteByUser(User user);
 }
 
