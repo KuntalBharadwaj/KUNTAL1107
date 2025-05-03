@@ -17,6 +17,11 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @Slf4j
@@ -33,6 +38,8 @@ public class UserService implements IUserService {
 
     @Autowired
     private MailService mailService;
+
+    Map<String,String> otpStorage=new ConcurrentHashMap<>();
 
 
     @Override
@@ -117,6 +124,4 @@ public class UserService implements IUserService {
         AuthResponseDTO responseDTO = new AuthResponseDTO("Login successful", token);
         return new ResponseEntity<>(responseDTO, HttpStatus.OK);
     }
-
-
 }

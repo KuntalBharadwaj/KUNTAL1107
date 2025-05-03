@@ -7,6 +7,7 @@ import com.cg.cred_metric.dtos.RegisterDTO;
 import com.cg.cred_metric.services.IUserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,4 +36,5 @@ public class AuthController {
     public ResponseEntity<AuthResponseDTO> login(@Valid @RequestBody LoginDTO loginDTO){
         return userService.loginUser(loginDTO);
     }
+
 }
