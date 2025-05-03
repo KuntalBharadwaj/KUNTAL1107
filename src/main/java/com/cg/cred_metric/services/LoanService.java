@@ -17,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -32,7 +33,7 @@ public class LoanService {
     @Transactional
     public ResponseEntity<LoanResponseDTO> createLoan(String email, LoanRequestDTO dto) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Loan loan = new Loan();
         loan.setUser(user);
@@ -45,34 +46,33 @@ public class LoanService {
         loan.setEmiDueDate(dto.getEmiDueDate());
         loan.setStatus(Loan.LoanStatus.ACTIVE);
 
-
-        String loanMessage = "✅ **Loan Created Successfully!** ✅\n\n" +
-                "Hi **" + user.getName() + "**,\n\n" +
-                "Your loan has been successfully created in Cred Metric. Here are the details of your loan:\n\n" +
-                "**Loan Type:** " + dto.getLoanType() + "\n" +
-                "**Principal Amount:** ₹" + dto.getPrincipalAmount() + "\n" +
-                "**Interest Rate:** " + dto.getInterestRate() + "%\n" +
-                "**Start Date:** " + dto.getStartDate() + "\n" +
-                "**End Date:** " + dto.getEndDate() + "\n" +
-                "**EMI Amount:** ₹" + dto.getEmiAmount() + "\n" +
-                "**Next EMI Due Date:** " + dto.getEmiDueDate() + "\n\n" +
-                "Thank you for trusting Cred Metric with your financial journey. If you have any questions or didn’t authorize this loan, please contact our support team immediately. 🔒\n\n" +
-                "Warm regards,\n" +
-                "**Cred Metric Team** 🚀";
+        String loanMessage = "Loan Created Successfully!"
+                + "\n\nHi, " + user.getName() + "!"
+                + "\n\nYour loan has been successfully created in Cred Metric. \nHere are the details of your loan:"
+                + "\n\nLoan Type: " + dto.getLoanType()
+                + "\nPrincipal Amount: ₹" + dto.getPrincipalAmount()
+                + "\nInterest Rate: " + dto.getInterestRate() + "%"
+                + "\nStart Date: " + dto.getStartDate()
+                + "\nEnd Date: " + dto.getEndDate()
+                + "\nEMI Amount: ₹" + dto.getEmiAmount()
+                + "\nNext EMI Due Date: " + dto.getEmiDueDate()
+                + "\n\nThank you for trusting Cred Metric with your financial journey. If you have any questions or didn’t authorize this loan, please contact our support team immediately."
+                + "\n\nWarm regards,"
+                + "\nCred Metric Team";
 
         mailService.sendMail(user.getEmail(), "📄 Your Loan Has Been Created Successfully!", loanMessage);
         
-         loanRepository.save(loan);
+        loanRepository.save(loan);
 
-         LoanResponseDTO loanResponseDTO = new LoanResponseDTO(loan);
+        LoanResponseDTO loanResponseDTO = new LoanResponseDTO(loan);
 
-         return new ResponseEntity<>(loanResponseDTO, HttpStatus.CREATED);
+        return new ResponseEntity<>(loanResponseDTO, HttpStatus.CREATED);
     }
 
     // Get all loans
     public List<LoanResponseDTO> getAllLoansByEmail(String email) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         List<Loan> loans = loanRepository.findByUser(user);
 
@@ -86,10 +86,10 @@ public class LoanService {
     // Update Loan
     public Loan updateLoan(Long loanId, String email, LoanRequestDTO dto) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Loan loan = loanRepository.findById(loanId)
-                .orElseThrow(() -> new RuntimeException("Loan not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Loan not found"));
 
         if (!loan.getUser().getUserId().equals(user.getUserId())) {
             throw new ResourceNotFoundException("Unauthorized to update this loan");
@@ -104,19 +104,19 @@ public class LoanService {
         loan.setEmiAmount(dto.getEmiAmount());
         loan.setEmiDueDate(dto.getEmiDueDate());
 
-        String updateMessage = "📢 **Loan Updated!** 📢\n\n" +
-                "Hi **" + user.getName() + "**,\n\n" +
-                "Your loan details have been updated. Here are the latest loan details:\n\n" +
-                "**Loan Type:** " + dto.getLoanType() + "\n" +
-                "**Principal Amount:** ₹" + dto.getPrincipalAmount() + "\n" +
-                "**Interest Rate:** " + dto.getInterestRate() + "%\n" +
-                "**Start Date:** " + dto.getStartDate() + "\n" +
-                "**End Date:** " + dto.getEndDate() + "\n" +
-                "**EMI Amount:** ₹" + dto.getEmiAmount() + "\n" +
-                "**Next EMI Due Date:** " + dto.getEmiDueDate() + "\n\n" +
-                "If you didn’t request this update, please reach out to our support team immediately.\n\n" +
-                "Warm regards,\n" +
-                "**Cred Metric Team** 🔐";
+        String updateMessage = "Loan Updated!"
+                + "\n\nHi, " + user.getName() + "!"
+                + "\n\nYour loan details have been updated. \nHere are the latest loan details:"
+                + "\n\nLoan Type: " + dto.getLoanType()
+                + "\nPrincipal Amount: ₹" + dto.getPrincipalAmount()
+                + "\nInterest Rate: " + dto.getInterestRate() + "%"
+                + "\nStart Date: " + dto.getStartDate()
+                + "\nEnd Date: " + dto.getEndDate()
+                + "\nEMI Amount: ₹" + dto.getEmiAmount()
+                + "\nNext EMI Due Date: " + dto.getEmiDueDate()
+                + "\n\nIf you didn’t request this update, please reach out to our support team immediately."
+                + "\n\nWarm regards,"
+                + "\nCred Metric Team";
 
         mailService.sendMail(user.getEmail(), "📝 Loan Updated Successfully", updateMessage);
 
@@ -131,4 +131,17 @@ public class LoanService {
         loanRepository.deleteByUser(user);
     }
 
+    public boolean deleteLoanForUser(Long loanId, String userEmail) {
+        Optional<Loan> optionalLoan = loanRepository.findById(loanId);
+
+        if (optionalLoan.isEmpty()) return false;
+
+        Loan loan = optionalLoan.get();
+        if (!loan.getUser().getEmail().equals(userEmail)) {
+            return false; // Not the owner
+        }
+
+        loanRepository.delete(loan);
+        return true;
+    }
 }

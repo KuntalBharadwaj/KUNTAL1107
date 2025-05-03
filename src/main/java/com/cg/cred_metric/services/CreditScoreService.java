@@ -139,9 +139,9 @@ public class CreditScoreService {
     }
 
     // Monthly Scheduler
-    // @Scheduled(cron = "0 0 0 1 * *")
+    //@Scheduled(cron = "0 0 0 1 * *")
     // For testing
-    @Scheduled(cron = "0 0/1 * * * ?")
+    // @Scheduled(cron = "0 0/1 * * * ?")
     @Transactional
     public void scheduleMonthlyCreditScoreCalculation() {
         List<User> users = userRepository.findAll();

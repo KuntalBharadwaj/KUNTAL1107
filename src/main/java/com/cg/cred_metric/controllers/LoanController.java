@@ -62,4 +62,27 @@ public class LoanController {
         );
     }
 
+    // Delete loan by Id with authentication
+    @DeleteMapping("/{loanId}")
+    public ResponseEntity<?> deleteLoanById(@PathVariable Long loanId, Authentication authentication) {
+        String userEmail = authentication.getName(); // Get logged-in user's email
+
+        boolean deleted = loanService.deleteLoanForUser(loanId, userEmail);
+
+        if (!deleted) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
+                    Map.of(
+                            "status", 403,
+                            "error", "You are not authorized to delete this loan or it doesn't exist."
+                    )
+            );
+        }
+
+        return ResponseEntity.ok(
+                Map.of(
+                        "status", 200,
+                        "data", Map.of("message", "Loan deleted successfully")
+                )
+        );
+    }
 }
