@@ -7,6 +7,7 @@ import com.cg.cred_metric.models.User;
 import com.cg.cred_metric.repositories.CreditCardRepository;
 import com.cg.cred_metric.repositories.UserRespository;
 import com.cg.cred_metric.utils.MailService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@Slf4j
 public class CreditCardService {
 
     @Autowired
@@ -69,17 +71,21 @@ public class CreditCardService {
 
      //Update an existing credit card
     @Transactional
-    public CreditCard updateCreditCard(Long cardId, CreditCardDTO creditCardDTO) {
-        Optional<CreditCard> optionalCreditCard = creditCardRepository.findById(cardId);
-        if (optionalCreditCard.isEmpty()) {
-            throw new ResourceNotFoundException("Credit card not found");
+    public CreditCard updateCreditCard(Long cardId, String email, CreditCardDTO creditCardDTO) {
+
+        CreditCard card = creditCardRepository.findById(cardId).orElseThrow(() -> new ResourceNotFoundException("Card not found"));
+
+        String cardHolderEmail = card.getUser().getEmail();
+
+        if(!cardHolderEmail.equals(email)) {
+            throw new ResourceNotFoundException("You are not allowed to update this credit card");
         }
 
         Double billDueAmount = creditCardDTO.getCreditLimit()
                 .subtract(creditCardDTO.getCurrentBalance())
                 .doubleValue();
 
-        CreditCard creditCard = optionalCreditCard.get();
+        CreditCard creditCard = card;
         creditCard.setCreditLimit(creditCardDTO.getCreditLimit());
         creditCard.setCurrentBalance(creditCardDTO.getCurrentBalance());
         creditCard.setIssueDate(creditCardDTO.getIssueDate());
@@ -88,6 +94,7 @@ public class CreditCardService {
         creditCard.setBillDueDate(creditCardDTO.getBillDueDate());
 
         return creditCardRepository.save(creditCard);
+
     }
 
     // Fetch credit card details for a specific user

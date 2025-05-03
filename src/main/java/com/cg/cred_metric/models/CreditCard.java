@@ -19,7 +19,7 @@ public class CreditCard {
     private Long cardId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "userId", nullable = false)
     private User user;
 
     private BigDecimal creditLimit;

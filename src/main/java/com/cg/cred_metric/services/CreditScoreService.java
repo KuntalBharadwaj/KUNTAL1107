@@ -139,7 +139,9 @@ public class CreditScoreService {
     }
 
     // Monthly Scheduler
-    @Scheduled(cron = "0 0 2 1 * *") // 2:00 AM on the 1st of every month
+    // @Scheduled(cron = "0 0 0 1 * *")
+    // For testing
+    @Scheduled(cron = "0 0/1 * * * ?")
     @Transactional
     public void scheduleMonthlyCreditScoreCalculation() {
         List<User> users = userRepository.findAll();

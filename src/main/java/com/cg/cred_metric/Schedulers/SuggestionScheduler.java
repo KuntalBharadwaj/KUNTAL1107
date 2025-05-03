@@ -2,6 +2,7 @@ package com.cg.cred_metric.Schedulers;
 
 import com.cg.cred_metric.models.*;
 import com.cg.cred_metric.repositories.*;
+import com.cg.cred_metric.utils.MailService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,13 +33,17 @@ public class SuggestionScheduler {
 
     @Autowired
     private CreditCardRepository creditCardRepository;
+
     @Autowired
     private ObjectMapper objectMapper;
 
-    // Scheduled to run every 2 minutes for testing
-    //@Scheduled(cron = "0 0/1 * * * ?")
+    @Autowired
+    private MailService mailService;
+
+    // Scheduled to run every 1 minutes for testing
+    @Scheduled(cron = "0 0/2 * * * ?")
     // Scheduled to run at the beginning of each month
-    @Scheduled(cron = "0 0 0 1 * ?")
+    // @Scheduled(cron = "0 0 1 1 * ?")
     public void generateMonthlySuggestions() {
         log.info("Starting the suggestion generation process...");
 
@@ -52,6 +57,13 @@ public class SuggestionScheduler {
 
         for (User user : allUsers) {
             log.info("Processing suggestions for user ID: {}", user.getUserId());
+
+            // Check if suggestions already exist for this user and month
+            if (suggestionRepository.existsByUserAndSuggestionMonth(user, lastMonth)) {
+                log.info("Suggestions already exist for user ID: {} and month: {}. Skipping.", user.getUserId(), lastMonth);
+                continue; // Skip to the next user
+            }
+
             List<String> suggestionsList = new ArrayList<>();
 
             // Process Loan Suggestions
@@ -62,10 +74,23 @@ public class SuggestionScheduler {
 
             // Save Suggestions
             saveSuggestions(user, suggestionsList, lastMonth);
+
+            if (!suggestionsList.isEmpty()) {
+                String subject = "Your Suggestions Summary for " + lastMonth.getMonth() + " " + lastMonth.getYear();
+                String body = "Dear " + user.getName() + ","
+                        + "\n\nYour Suggestions Summary for " + lastMonth.getMonth() + " " + lastMonth.getYear()
+                        + suggestionsList
+                        + "\n\nRegards,\nTeam Cred Metric";
+                mailService.sendMail(user.getEmail(), subject, body);
+                log.info("Report sent to user ID: {}", user.getUserId());
+            } else {
+                log.warn("Empty report generated for user ID: {}", user.getUserId());
+            }
         }
         log.info("Suggestion generation process completed.");
     }
 
+    // ... (rest of your methods remain the same)
     private void processLoanSuggestions(User user, List<String> suggestionsList, LocalDate startDate, LocalDate endDate) {
         List<Loan> userLoans = loanRepository.findByUser(user);
 
@@ -124,7 +149,7 @@ public class SuggestionScheduler {
     private void saveSuggestions(User user, List<String> suggestionsList, YearMonth lastMonth) {
         if (!suggestionsList.isEmpty()) {
             try {
-                ObjectMapper mapper = new ObjectMapper();
+                //ObjectMapper mapper = new ObjectMapper();
                 String suggestionsJson = objectMapper.writeValueAsString(suggestionsList);
 
                 log.info(suggestionsJson);
@@ -143,7 +168,8 @@ public class SuggestionScheduler {
             }
         }
         else {
-            log.info("No suggessions found for user ID: {}", user.getUserId());
+            log.info("No suggestions found for user ID: {}", user.getUserId());
         }
     }
 }
+

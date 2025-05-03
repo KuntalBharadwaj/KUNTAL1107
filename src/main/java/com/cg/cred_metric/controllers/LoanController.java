@@ -38,11 +38,16 @@ public class LoanController {
     }
 
     @PutMapping("/{loanId}")
-    public ResponseEntity<String> updateLoan(@PathVariable Long loanId,
+    public ResponseEntity<?> updateLoan(@PathVariable Long loanId,
                                              Authentication authentication,
                                              @Valid @RequestBody LoanRequestDTO loanRequestDTO) {
         loanService.updateLoan(loanId, authentication.getName(), loanRequestDTO);
-        return ResponseEntity.ok("Loan updated successfully");
+        return ResponseEntity.ok(
+                Map.of(
+                        "status", 200,
+                        "data", Map.of("message", "Loan Updated successfully")
+                )
+        );
     }
 
     @DeleteMapping("/")

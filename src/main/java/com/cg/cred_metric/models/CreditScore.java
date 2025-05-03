@@ -18,7 +18,7 @@ public class CreditScore {
     private Long id;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "userId", nullable = false)
     @JsonIgnore
     private User user;
 

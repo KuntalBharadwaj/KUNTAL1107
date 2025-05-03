@@ -35,6 +35,7 @@ public class AuthController {
         return userService.loginUser(loginDTO);
     }
 
+    // Change password
     @PostMapping("/change-password")
     public ResponseEntity<ChangePasswordResponseDTO> changePassword(
             Authentication authentication,
@@ -43,6 +44,17 @@ public class AuthController {
         return userService.changePassword(email, requestDTO);
     }
 
+    // forget pass
+    @PostMapping("/forget-password")
+    public ResponseEntity<?> forgotPassowrd(@RequestBody String email){
+        return userService.forgetPassword(email);
+    }
+
+    // reset pass
+    @PutMapping("reset-password")
+    public ResponseEntity<?> resetPassowrd(@RequestBody ResetPasswordDTO resetPasswordDTO){
+        return userService.resetPassword(resetPasswordDTO);
+    }
     // Delete User by email
     @DeleteMapping("/")
     public ResponseEntity<String> deleteUser(Authentication authentication) {
