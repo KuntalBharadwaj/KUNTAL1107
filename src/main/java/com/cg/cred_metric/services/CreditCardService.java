@@ -3,6 +3,7 @@ package com.cg.cred_metric.services;
 import com.cg.cred_metric.dtos.CreditCard.CreditCardDTO;
 import com.cg.cred_metric.exceptions.ResourceNotFoundException;
 import com.cg.cred_metric.models.CreditCard;
+import com.cg.cred_metric.models.Loan;
 import com.cg.cred_metric.models.User;
 import com.cg.cred_metric.repositories.CreditCardRepository;
 import com.cg.cred_metric.repositories.UserRespository;
@@ -49,19 +50,19 @@ public class CreditCardService {
 
         CreditCard savedCard = creditCardRepository.save(creditCard);
 
-        String creditCardMessage = "✅ **Credit Card Added Successfully!** ✅\n\n" +
-                "Hi " + user.getName() + "**,\n\n" +
-                "Your credit card has been successfully added to your profile in Cred Metric. Here are the details of your card:\n\n" +
-                "Credit Limit: ₹" + creditCardDTO.getCreditLimit() + "\n" +
-                "Card ID:" +  savedCard.getCardId() + "\n" +
-                "Current Balance: ₹" + creditCardDTO.getCurrentBalance() + "\n" +
-                "Issue Date:" + creditCardDTO.getIssueDate() + "\n" +
-                "Expiry Date: " + creditCardDTO.getExpiryDate() + "\n\n" +
-                "Card Bill Amount: " + billDueAmount + "\n" +
-                "Card Bill Due Date: " + creditCardDTO.getBillDueDate() + "\n" +
-                "We’re excited to have you on board. Please review your card details carefully. If you notice anything unusual or didn’t authorize this card, contact our support team immediately. 🔒\n\n" +
-                "Warm regards,\n" +
-                "Cred Metric Team 🚀";
+        String creditCardMessage = "Credit Card Added Successfully!"
+                + "\n\nHi, " + user.getName() + "!"
+                + "\n\nYour credit card has been successfully added to your profile in Cred Metric. \nHere are the details of your card:"
+                + "\n\nCredit Limit: ₹" + creditCardDTO.getCreditLimit()
+                + "\nCard ID:" +  savedCard.getCardId()
+                + "\nCurrent Balance: ₹" + creditCardDTO.getCurrentBalance()
+                + "\nIssue Date:" + creditCardDTO.getIssueDate()
+                + "\nExpiry Date: " + creditCardDTO.getExpiryDate()
+                + "\nCard Bill Amount: " + billDueAmount
+                + "\nCard Bill Due Date: " + creditCardDTO.getBillDueDate()
+                + "\n\nWe’re excited to have you on board. Please review your card details carefully. If you notice anything unusual or didn’t authorize this card, contact our support team immediately."
+                + "\n\nWarm regards,"
+                + "\nCred Metric Team";
 
         mailService.sendMail(user.getEmail(), "💳 Your Credit Card Has Been Added!", creditCardMessage);
 
@@ -121,6 +122,20 @@ public class CreditCardService {
         User user = userRespository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         creditCardRepository.deleteByUser(user);
+    }
+
+    public boolean deleteCreditCardForUser(Long cardId, String userEmail) {
+        Optional<CreditCard> optionalCreditCard = creditCardRepository.findById(cardId);
+
+        if (optionalCreditCard.isEmpty()) return false;
+
+        CreditCard creditCard = optionalCreditCard.get();
+        if (!creditCard.getUser().getEmail().equals(userEmail)) {
+            return false; // Not the owner
+        }
+
+        creditCardRepository.delete(creditCard);
+        return true;
     }
 }
 

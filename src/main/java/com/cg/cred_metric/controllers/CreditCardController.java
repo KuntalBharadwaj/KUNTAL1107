@@ -68,5 +68,29 @@ public class CreditCardController {
                 )
         );
     }
+
+    // Delete credit card by Id with authentication
+    @DeleteMapping("/{cardId}")
+    public ResponseEntity<?> deleteCreditCardById(@PathVariable Long cardId, Authentication authentication) {
+        String userEmail = authentication.getName(); // Get logged-in user's email
+
+        boolean deleted = creditCardService.deleteCreditCardForUser(cardId, userEmail);
+
+        if (!deleted) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
+                    Map.of(
+                            "status", 403,
+                            "error", "You are not authorized to delete this credit card or it doesn't exist."
+                    )
+            );
+        }
+
+        return ResponseEntity.ok(
+                Map.of(
+                        "status", 200,
+                        "data", Map.of("message", "Loan deleted successfully")
+                )
+        );
+    }
 }
 
