@@ -7,6 +7,7 @@ import com.cg.cred_metric.models.User;
 import com.cg.cred_metric.repositories.UserRespository;
 import com.cg.cred_metric.utils.JWTUtils;
 import com.cg.cred_metric.utils.MailService;
+import com.cg.cred_metric.utils.OTPGenerator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -33,6 +34,11 @@ public class UserService implements IUserService {
 
     @Autowired
     private MailService mailService;
+
+    @Autowired
+    OTPGenerator otpGenerator;
+
+    String otp="";
 
     @Override
     public ResponseEntity<AuthResponseDTO> registerUser(RegisterDTO registerDTO) {
@@ -154,6 +160,59 @@ public class UserService implements IUserService {
 
         mailService.sendMail(user.getEmail(), "Your password has been changed successfully!", changePasswordMessage);
         return new ResponseEntity<>(new ChangePasswordResponseDTO(200, "Password changed successfully"), HttpStatus.OK);
+    }
+
+
+    @Override
+    public ResponseEntity<?> forgetPassword(String email) {
+
+        log.info("Forget password email: " + email);
+
+        // Check user exist hai ya nhi
+        User user = userRespository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException( "User not found with email " + email));
+
+        log.info(String.valueOf(user));
+
+
+        //User Exist krta hai otp generate krke email pr bhejo
+        otp = otpGenerator.generateOTP();
+        String token = jwtUtils.createJWTToken(email);
+
+        mailService.sendMail(email, "OTP generated", "OTP to reset password is: " + otp);
+
+        return new ResponseEntity<>(new AuthResponseDTO("OTP generated  ", otp), HttpStatus.OK);
+
+    }
+
+    @Override
+    public ResponseEntity<?> resetPassword(ResetPasswordDTO resetPasswordDTO) {
+        String email = resetPasswordDTO.getEmail();
+
+        // Check user exist hai ya nhi
+        User user = userRespository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException( "User not found with email " + email));
+
+
+        //Verify OTP
+        if(!otp.equals(resetPasswordDTO.getOtp())){
+            throw new ResourceNotFoundException("OTP doesn't match");
+        }
+
+        // New Pass ko encode krna hai
+        if(!resetPasswordDTO.getNewPassword().equals(resetPasswordDTO.getConfirmPassword())){
+            throw new ResourceNotFoundException("Confirm password doesn't match");
+        }
+
+        String encodedNewPassword = passwordEncoder.encode(resetPasswordDTO.getNewPassword());
+
+        user.setPassword(encodedNewPassword);
+
+        userRespository.save(user);
+
+        otp="";
+
+        mailService.sendMail(email, "Password Request", "Password changed successfully.");
+        return new ResponseEntity<>(new AuthResponseDTO("Reset password successful", user.getUserId()), HttpStatus.OK);
+
     }
 
     // Delete User by Email
