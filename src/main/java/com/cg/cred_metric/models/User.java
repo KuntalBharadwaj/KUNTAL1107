@@ -18,7 +18,7 @@ import java.util.UUID;
 @Data
 public class User implements UserDetails {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)  // Automatically generate UUID
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long userId;
 
     private String name;
