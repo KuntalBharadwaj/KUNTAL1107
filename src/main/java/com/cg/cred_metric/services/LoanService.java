@@ -92,7 +92,7 @@ public class LoanService {
                 .orElseThrow(() -> new RuntimeException("Loan not found"));
 
         if (!loan.getUser().getUserId().equals(user.getUserId())) {
-            throw new RuntimeException("Unauthorized to update this loan");
+            throw new ResourceNotFoundException("Unauthorized to update this loan");
         }
 
         // Update allowed fields

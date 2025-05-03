@@ -95,11 +95,8 @@ public class UserService implements IUserService {
 
     @Override
     public ResponseEntity<AuthResponseDTO> loginUser(LoginDTO loginDTO) {
-        User user = userRespository.findByEmail(loginDTO.getEmail()).orElse(null);
 
-        if (user == null) {
-            return new ResponseEntity<>(new AuthResponseDTO("Invalid Email", ""), HttpStatus.UNAUTHORIZED);
-        }
+        User user = userRespository.findByEmail(loginDTO.getEmail()).orElseThrow(() -> new ResourceNotFoundException( "User not found Exception " + loginDTO.getEmail()));
 
         if (!passwordEncoder.matches(loginDTO.getPassword(), user.getPassword())) {
             return new ResponseEntity<>(new AuthResponseDTO("Invalid Password", ""), HttpStatus.UNAUTHORIZED);

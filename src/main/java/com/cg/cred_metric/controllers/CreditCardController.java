@@ -38,7 +38,7 @@ public class CreditCardController {
     public ResponseEntity<CreditCardResponseDTO> updateCreditCard(Authentication authentication,
                                                                   @PathVariable Long id,
                                                                   @Valid @RequestBody CreditCardDTO creditCardDTO) {
-        CreditCard updatedCard = creditCardService.updateCreditCard(id, creditCardDTO);
+        CreditCard updatedCard = creditCardService.updateCreditCard(id,authentication.getName(), creditCardDTO);
         return ResponseEntity.ok(new CreditCardResponseDTO(updatedCard));
     }
 
