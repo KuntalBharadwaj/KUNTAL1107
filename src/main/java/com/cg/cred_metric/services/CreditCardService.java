@@ -32,13 +32,17 @@ public class CreditCardService {
         User user = userRespository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
+        Double billDueAmount = creditCardDTO.getCreditLimit()
+                .subtract(creditCardDTO.getCurrentBalance())
+                .doubleValue();
+
         CreditCard creditCard = new CreditCard();
         creditCard.setUser(user);
         creditCard.setCreditLimit(creditCardDTO.getCreditLimit());
         creditCard.setCurrentBalance(creditCardDTO.getCurrentBalance());
         creditCard.setIssueDate(creditCardDTO.getIssueDate());
         creditCard.setExpiryDate(creditCardDTO.getExpiryDate());
-        creditCard.setCardBillAmount(creditCardDTO.getCardBillAmount());
+        creditCard.setCardBillAmount(billDueAmount);
         creditCard.setBillDueDate(creditCardDTO.getBillDueDate());
 
         CreditCard savedCard = creditCardRepository.save(creditCard);
@@ -51,7 +55,7 @@ public class CreditCardService {
                 "Current Balance: ₹" + creditCardDTO.getCurrentBalance() + "\n" +
                 "Issue Date:" + creditCardDTO.getIssueDate() + "\n" +
                 "Expiry Date: " + creditCardDTO.getExpiryDate() + "\n\n" +
-                "Card Bill Amount: " + creditCardDTO.getCardBillAmount() + "\n" +
+                "Card Bill Amount: " + billDueAmount + "\n" +
                 "Card Bill Due Date: " + creditCardDTO.getBillDueDate() + "\n" +
                 "We’re excited to have you on board. Please review your card details carefully. If you notice anything unusual or didn’t authorize this card, contact our support team immediately. 🔒\n\n" +
                 "Warm regards,\n" +
@@ -71,12 +75,16 @@ public class CreditCardService {
             throw new ResourceNotFoundException("Credit card not found");
         }
 
+        Double billDueAmount = creditCardDTO.getCreditLimit()
+                .subtract(creditCardDTO.getCurrentBalance())
+                .doubleValue();
+
         CreditCard creditCard = optionalCreditCard.get();
         creditCard.setCreditLimit(creditCardDTO.getCreditLimit());
         creditCard.setCurrentBalance(creditCardDTO.getCurrentBalance());
         creditCard.setIssueDate(creditCardDTO.getIssueDate());
         creditCard.setExpiryDate(creditCardDTO.getExpiryDate());
-        creditCard.setCardBillAmount(creditCardDTO.getCardBillAmount());
+        creditCard.setCardBillAmount(billDueAmount);
         creditCard.setBillDueDate(creditCardDTO.getBillDueDate());
 
         return creditCardRepository.save(creditCard);

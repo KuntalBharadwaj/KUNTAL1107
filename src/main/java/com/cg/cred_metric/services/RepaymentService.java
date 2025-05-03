@@ -62,6 +62,10 @@ public class RepaymentService implements IRepaymentService {
                 throw new InvalidInputException("This loan has already been completed, no further repayments are allowed.");
             }
 
+            if (repaymentRequestDTO.getAmountPaid() == 0) {
+                throw new InvalidInputException("Repayment amount must be greater than zero.");
+            }
+
             if (!Objects.equals(repaymentRequestDTO.getAmountPaid(), loan.getEmiAmount())) {
                 throw new InvalidInputException("Amount paid must be equal to EMI amount: " + loan.getEmiAmount());
             }
@@ -86,6 +90,10 @@ public class RepaymentService implements IRepaymentService {
             // Check if credit card is active, no further repayment should be allowed if card has expired
             if (creditCard.getExpiryDate().isBefore(LocalDate.now())) {
                 throw new InvalidInputException("The credit card has expired.");
+            }
+
+            if (repaymentRequestDTO.getAmountPaid() == 0) {
+                throw new InvalidInputException("Repayment amount must be greater than zero.");
             }
 
             if (!Objects.equals(repaymentRequestDTO.getAmountPaid(), creditCard.getCardBillAmount())) {
