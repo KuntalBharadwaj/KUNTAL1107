@@ -7,7 +7,6 @@ import com.cg.cred_metric.models.User;
 import com.cg.cred_metric.repositories.UserRespository;
 import com.cg.cred_metric.utils.JWTUtils;
 import com.cg.cred_metric.utils.MailService;
-import com.cg.cred_metric.utils.OTPGenerator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -35,12 +34,6 @@ public class UserService implements IUserService {
     @Autowired
     private MailService mailService;
 
-    @Autowired
-    OTPGenerator otpGenerator;
-
-    String otp="";
-
-
     @Override
     public ResponseEntity<AuthResponseDTO> registerUser(RegisterDTO registerDTO) {
         // Check if user with the given email already exists
@@ -65,7 +58,6 @@ public class UserService implements IUserService {
                 throw new InvalidDateFormatException("User must be at least 18 years old.");
             }
 
-
         // Create new user
         User user = new User();
         user.setName(registerDTO.getName());
@@ -79,11 +71,13 @@ public class UserService implements IUserService {
 
         // log.info("User created" + user);
         String subject = "Welcome to Cred Metric!";
-        String body = "🎉 **Welcome to Cred Metric!** 🎉\n\n" +
-                "This is your one-stop app where you can easily view and track your **credit score**. " +
-                "Whether you're looking to improve your financial health or simply keep tabs on your credit status, we've got you covered!\n\n" +
-                "Start exploring and take control of your credit journey today! 🚀";
-
+        String body = "🎉 Welcome to Cred Metric! 🎉"
+                + "\n\nThank you for registering with Cred Metric!"
+                + "\n\nThis is your one-stop app where you can easily view and track your credit score."
+                + "\nWhether you're looking to improve your financial health or simply keeping tabs on your credit status, we've got you covered!"
+                + "\n\nStart exploring and take control of your credit journey today! 🚀"
+                + "\n\nWarm Regards,"
+                + "\nTeam Cred Metric";
         mailService.sendMail(registerDTO.getEmail(), subject, body);
 
         // Return success response
@@ -93,11 +87,9 @@ public class UserService implements IUserService {
         );
     }
 
-
     @Override
     public ResponseEntity<AuthResponseDTO> loginUser(LoginDTO loginDTO) {
-
-        User user = userRespository.findByEmail(loginDTO.getEmail()).orElseThrow(() -> new ResourceNotFoundException( "User not found with email " + loginDTO.getEmail()));
+        User user = userRespository.findByEmail(loginDTO.getEmail()).orElse(null);
 
         if (user == null) {
             return new ResponseEntity<>(new AuthResponseDTO("Invalid Email", ""), HttpStatus.UNAUTHORIZED);
@@ -112,14 +104,16 @@ public class UserService implements IUserService {
         user.setToken(token);
         userRespository.save(user);
 
-        String loginMessage = "🔑 **Your Login was Successful!** 🔑\n\n" +
-                "Hi **" + user.getName() + "**, \n\n" +
-                "You're all set and logged in to Cred Metric! 🎉\n\n" +
-                "We’re excited to have you back. If this wasn't you, please reach out immediately to secure your account. We take your security seriously. 🔒\n\n" +
-                "Feel free to explore your dashboard and make the most out of your account.\n\n" +
-                "Happy exploring! 🚀";
+        String loginMessage = "Hi, " + user.getName() + "!"
+                + "\n\nYou're all set and logged in to Cred Metric! 🎉"
+                + "\n\nWe’re excited to have you back."
+                + "\n\nIf this wasn't you, please reach out immediately to secure your account. We take your security seriously."
+                + "\n\nFeel free to explore your dashboard and make the most out of your account."
+                + "\nHappy exploring! 🚀"
+                + "\n\nWarm Regards,"
+                + "\nTeam Cred Metric";
 
-        mailService.sendMail(user.getEmail(), "🔐 Your Cred Metric Login Was Successful! 🚀", loginMessage);
+        mailService.sendMail(user.getEmail(), "Your Cred Metric Login Was Successful!", loginMessage);
 
         AuthResponseDTO responseDTO = new AuthResponseDTO("Login successful", token);
         return new ResponseEntity<>(responseDTO, HttpStatus.OK);
@@ -127,7 +121,7 @@ public class UserService implements IUserService {
 
     @Override
     public ResponseEntity<ChangePasswordResponseDTO> changePassword(String email, ChangePasswordRequestDTO request) {
-        User user = userRespository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException( "User not found with email " + email));
+        User user = userRespository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException( "User not found Exception " + email));
 
         // 1. Old password check
         if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
@@ -148,61 +142,19 @@ public class UserService implements IUserService {
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRespository.save(user);
 
+        // Mail service for Change Password
+        String changePasswordMessage = "Hi, " + user.getName() + "!"
+                + "\n\nYour password has been changed successfully!"
+                + "\n\nYou're all set! Your account is now secured with your new password. 🔐"
+                + "\n\nIf this wasn't you, please reach out immediately to secure your account. We take your security seriously."
+                + "\n\nThank you for trusting Cred Metric for your Financial journey!"
+                + "\nHappy exploring!🚀"
+                + "\n\nWarm Regards,"
+                + "\nTeam Cred Metric";
+
+        mailService.sendMail(user.getEmail(), "Your password has been changed successfully!", changePasswordMessage);
         return new ResponseEntity<>(new ChangePasswordResponseDTO(200, "Password changed successfully"), HttpStatus.OK);
     }
-
-    @Override
-    public ResponseEntity<?> forgetPassword(String email) {
-
-        log.info("Forget password email: " + email);
-
-        // Check user exist hai ya nhi
-        User user = userRespository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException( "User not found with email " + email));
-
-        log.info(String.valueOf(user));
-
-
-        //User Exist krta hai otp generate krke email pr bhejo
-        otp = otpGenerator.generateOTP();
-        String token = jwtUtils.createJWTToken(email);
-
-        mailService.sendMail(email, "OTP generated", "OTP to reset password is: " + otp);
-
-        return new ResponseEntity<>(new AuthResponseDTO("OTP generated  ", otp), HttpStatus.OK);
-
-    }
-
-    @Override
-    public ResponseEntity<?> resetPassword(ResetPasswordDTO resetPasswordDTO) {
-        String email = resetPasswordDTO.getEmail();
-
-        // Check user exist hai ya nhi
-        User user = userRespository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException( "User not found with email " + email));
-
-
-        //Verify OTP
-        if(!otp.equals(resetPasswordDTO.getOtp())){
-            throw new ResourceNotFoundException("OTP doesn't match");
-        }
-
-        // New Pass ko encode krna hai
-        if(!resetPasswordDTO.getNewPassword().equals(resetPasswordDTO.getConfirmPassword())){
-            throw new ResourceNotFoundException("Confirm password doesn't match");
-        }
-
-        String encodedNewPassword = passwordEncoder.encode(resetPasswordDTO.getNewPassword());
-
-        user.setPassword(encodedNewPassword);
-
-        userRespository.save(user);
-
-        otp="";
-
-        mailService.sendMail(email, "Password Request", "Password changed successfully.");
-        return new ResponseEntity<>(new AuthResponseDTO("Reset password successful", user.getUserId()), HttpStatus.OK);
-
-    }
-
 
     // Delete User by Email
     @Transactional
@@ -210,5 +162,4 @@ public class UserService implements IUserService {
         User user = userRespository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
         userRespository.delete(user);
     }
-
 }
