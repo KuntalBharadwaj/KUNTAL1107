@@ -12,4 +12,6 @@ import java.time.YearMonth;
 @Repository
 public interface SuggestionRepository extends JpaRepository<CreditScoreSuggestion, Long> {
     CreditScoreSuggestion findByUserAndSuggestionMonth(User user, YearMonth suggestionMonth);
+
+    boolean existsByUserAndSuggestionMonth(User user, YearMonth lastMonth);
 }

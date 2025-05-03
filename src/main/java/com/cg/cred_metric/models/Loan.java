@@ -17,7 +17,7 @@ public class Loan {
     private Long loanId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "userId", nullable = false)
     @JsonIgnore
     private User user;
 
