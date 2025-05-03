@@ -25,8 +25,6 @@ public class CreditCardDTO {
     @NotNull(message = "Expiry Date cannot be null")
     private LocalDate expiryDate;
 
-    @NotNull(message = "Card Bill Amount cannot be null")
-    private Double cardBillAmount;
 
     @NotNull(message = "Bill Due Date cannot be null")
     @JsonFormat(pattern = "yyyy-MM-dd")
