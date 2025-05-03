@@ -1,6 +1,7 @@
 package com.cg.cred_metric.services;
 
 import com.cg.cred_metric.dtos.SuggestionResponse;
+import com.cg.cred_metric.exceptions.ResourceNotFoundException;
 import com.cg.cred_metric.models.CreditScoreSuggestion;
 import com.cg.cred_metric.models.User;
 import com.cg.cred_metric.repositories.SuggestionRepository;
@@ -28,7 +29,7 @@ public class SuggestionServiceImpl implements ISuggestionService {
 
     @Override
     public SuggestionResponse getSuggestionsForUserAndMonth(String email, YearMonth month) {
-        User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Long userId = user.getUserId();
 
