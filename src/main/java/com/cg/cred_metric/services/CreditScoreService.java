@@ -139,6 +139,10 @@ public class CreditScoreService {
         List<Repayment> repayments = repaymentRepository.findByUser(user);
         List<CreditCard> cards = creditCardRepository.findByUser(user);
 
+        System.out.println(loans.size());
+        System.out.println(repayments.size());
+        System.out.println(cards.size());
+
         double baseScore = 750;
 
         // -----------------------------
