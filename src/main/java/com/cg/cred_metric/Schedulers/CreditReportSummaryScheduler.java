@@ -27,8 +27,8 @@ public class CreditReportSummaryScheduler {
     private MailService mailService;
 
     // Scheduled to run at the beginning of each month
-    //@Scheduled(cron = "0 0 0 1 * ?")
-    @Scheduled(cron = "0 * * * * ?")
+    @Scheduled(cron = "0 0 0 1 * ?")
+    // @Scheduled(cron = "0 * * * * ?")
 
     public void generateAndSendReports() {
         log.info("Starting monthly credit report summary generation...");
