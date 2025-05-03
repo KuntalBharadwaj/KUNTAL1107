@@ -22,7 +22,7 @@ public class CreditScore {
     @JsonIgnore
     private User user;
 
-    private double score;
+    private int score;
 
     private LocalDateTime calculatedAt;
 
