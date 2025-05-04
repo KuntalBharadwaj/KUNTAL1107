@@ -54,27 +54,34 @@ public class CreditScoreReportService {
         Font normal = new Font(Font.FontFamily.HELVETICA, 12);
 
         document.add(new Paragraph("Credit Score Analyzer Report", header));
+        Paragraph spacer = new Paragraph();
+        spacer.setSpacingBefore(10f); // Adjust the spacing as needed (e.g., 3f, 5f, etc.)
+        document.add(spacer);
         document.add(new Paragraph("User: " + user.getName(), normal));
         document.add(new Paragraph("Month: " + month.toString(), normal));
         document.add(Chunk.NEWLINE);
 
         // Loan Payments Table
         document.add(new Paragraph("Loan Repayment Summary", subHeader));
+        document.add(spacer);
         document.add(generateRepaymentTable(loanPayments));
 
         document.add(Chunk.NEWLINE);
 
         // Credit Card Payments Table
         document.add(new Paragraph("Credit Card Report Summary", subHeader));
+        document.add(spacer);
         document.add(generateRepaymentTable(creditCardPayments));
 
         document.add(Chunk.NEWLINE);
         document.add(new Paragraph("All Credit Card Summary", subHeader));
+        document.add(spacer);
         document.add(generateCreditCardTable(allCreditCard));
 
         // Credit Score Table
         document.add(Chunk.NEWLINE);
         document.add(new Paragraph("All Credit Score Summary", subHeader));
+        document.add(spacer);
         document.add(generateCreditScoreTable(creditScore));
         document.add(Chunk.NEWLINE);
 
@@ -95,15 +102,16 @@ public class CreditScoreReportService {
         table.setWidthPercentage(100);
         table.setWidths(new int[]{2, 2, 2, 2, 3});
 
-        table.addCell("Type ID");
-        table.addCell("Payment Date");
-        table.addCell("Status");
-        table.addCell("Amount");
-        table.addCell("Loan Type");
+        table.addCell(paddedCell(" Type ID ", Font.BOLD));
+        table.addCell(paddedCell(" Payment Date ", Font.BOLD));
+        table.addCell(paddedCell(" Status ", Font.BOLD));
+        table.addCell(paddedCell(" Amount ", Font.BOLD));
+        table.addCell(paddedCell(" Loan Type ", Font.BOLD));
+
 
         double totalPaid = 0.0;
         for (Repayment r : repayments) {
-            String loanType = "Unknown";
+            String loanType = " Unknown ";
             if (r.getRepaymentTypeID() != null) {
                 Loan loan = loanRepository.findById(r.getRepaymentTypeID()).orElse(null);
                 if (loan != null) {
@@ -111,61 +119,72 @@ public class CreditScoreReportService {
                 }
             }
 
-            table.addCell(String.valueOf(r.getRepaymentTypeID()));
-            table.addCell(r.getPaymentDate().toString());
-            table.addCell(r.getRepaymentStatus().name());
-            table.addCell("Rs." + r.getAmountPaid());
-            table.addCell(loanType);
+            table.addCell(paddedCell(String.valueOf(r.getRepaymentTypeID()),Font.NORMAL));
+            table.addCell(paddedCell(r.getPaymentDate().toString(), Font.NORMAL));
+            table.addCell(paddedCell(r.getRepaymentStatus().name(), Font.NORMAL));
+            table.addCell(paddedCell("Rs." + r.getAmountPaid(), Font.NORMAL));
+            table.addCell(paddedCell(loanType, Font.NORMAL));
+
             totalPaid += r.getAmountPaid();
         }
 
         if (repayments.isEmpty()) {
             PdfPCell cell = new PdfPCell(new Phrase("No repayments available"));
             cell.setColspan(5);
+            cell.setPadding(5f);
             cell.setHorizontalAlignment(Element.ALIGN_CENTER);
             table.addCell(cell);
         } else {
-            PdfPCell totalCell = new PdfPCell(new Phrase("Total"));
+            PdfPCell totalCell = new PdfPCell(new Phrase(" Total ", new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD)));
             totalCell.setColspan(4);
+            totalCell.setPadding(5f);
             totalCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
             table.addCell(totalCell);
-            table.addCell("Rs." + totalPaid);
+            table.addCell(paddedCell("Rs." + totalPaid, Font.NORMAL));
         }
 
         return table;
     }
 
+    private PdfPCell paddedCell(String text, int fontStyle) {
+        Font font = new Font(Font.FontFamily.HELVETICA, 12, fontStyle);
+        PdfPCell cell = new PdfPCell(new Phrase(text, font));
+        cell.setPadding(5f);
+        return cell;
+    }
+
     private PdfPTable generateCreditCardTable(List<CreditCard> creditCards) throws DocumentException {
         PdfPTable table = new PdfPTable(7);
         table.setWidthPercentage(100);
-        table.setWidths(new int[]{2, 2, 2, 2, 2, 2, 2}); // Add equal width for now
+        table.setWidths(new int[]{1, 3, 2, 2, 2, 2, 2}); // Add equal width for now
 
         // Headers
-        table.addCell("Card Id");
-        table.addCell("Card Limit");
-        table.addCell("Bill Amount");
-        table.addCell("Bill Due Date");
-        table.addCell("Expiry Date");
-        table.addCell("Status");
-        table.addCell("Utilization %");
+        table.addCell(paddedCell("Card Id", Font.BOLD));
+        table.addCell(paddedCell("Card Limit", Font.BOLD));
+        table.addCell(paddedCell("Bill Amount", Font.BOLD));
+        table.addCell(paddedCell("Bill Due Date", Font.BOLD));
+        table.addCell(paddedCell("Expiry Date", Font.BOLD));
+        table.addCell(paddedCell("Status", Font.BOLD));
+        table.addCell(paddedCell("Utilization %", Font.BOLD));
 
         if (creditCards.isEmpty()) {
-            PdfPCell cell = new PdfPCell(new Phrase("No credit cards available"));
+            PdfPCell cell = new PdfPCell(new Phrase(" No credit cards available "));
             cell.setColspan(7); // ✅ Match the number of columns
             cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+            cell.setPadding(5f);
             table.addCell(cell);
             return table;
         }
 
         for (CreditCard card : creditCards) {
-            table.addCell(card.getCardId().toString());
-            table.addCell("Rs." + card.getCreditLimit());
-            table.addCell("Rs." + card.getCardBillAmount());
-            table.addCell(card.getBillDueDate().toString());
-            table.addCell(card.getExpiryDate().toString());
+            table.addCell(paddedCell(card.getCardId().toString(), Font.NORMAL));
+            table.addCell(paddedCell("Rs." + card.getCreditLimit(), Font.NORMAL));
+            table.addCell(paddedCell("Rs." + card.getCardBillAmount(), Font.NORMAL));
+            table.addCell(paddedCell(card.getBillDueDate().toString(), Font.NORMAL));
+            table.addCell(paddedCell(card.getExpiryDate().toString(), Font.NORMAL));
 
-            String status = card.getExpiryDate().isBefore(LocalDate.now()) ? "Expired" : "Active";
-            table.addCell(status);
+            String status = card.getExpiryDate().isBefore(LocalDate.now()) ? " Expired " : " Active ";
+            table.addCell(paddedCell(status, Font.ITALIC));
 
             // Utilization %
 
@@ -181,7 +200,7 @@ public class CreditScoreReportService {
                         .multiply(BigDecimal.valueOf(100));
             }
 
-            table.addCell(String.format("%.2f%%", utilization));
+            table.addCell(paddedCell(String.format("%.2f%%", utilization), Font.NORMAL));
         }
 
         return table;
@@ -191,13 +210,12 @@ public class CreditScoreReportService {
         PdfPTable table = new PdfPTable(1);
         table.setWidthPercentage(40);
         table.setHorizontalAlignment(Element.ALIGN_LEFT);
-
-        table.addCell(new PdfPCell(new Phrase("Credit Score", new Font(Font.FontFamily.HELVETICA, 12))));
+        table.addCell(new PdfPCell(new Phrase("Credit Score", new Font(Font.FontFamily.HELVETICA, 14, Font.BOLD))) {{ setPadding(5f); }});
         if (creditScore.isPresent()) {
-            table.addCell(new PdfPCell(new Phrase(String.valueOf(creditScore.get().getScore()), new Font(Font.FontFamily.HELVETICA, 12))));
+            table.addCell(new PdfPCell(new Phrase(String.valueOf(creditScore.get().getScore()), new Font(Font.FontFamily.HELVETICA, 12))) {{ setPadding(5f); }});
         }
         else {
-            table.addCell(new PdfPCell(new Phrase("No credit score available", new Font(Font.FontFamily.HELVETICA, 12))));
+            table.addCell(new PdfPCell(new Phrase("No credit score available", new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD))) {{ setPadding(5f); }});
         }
         return table;
     }
