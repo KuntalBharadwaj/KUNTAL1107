@@ -1,6 +1,7 @@
 package com.cg.cred_metric.services;
 
 import com.cg.cred_metric.dtos.*;
+import com.cg.cred_metric.models.User;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 
@@ -12,4 +13,5 @@ public interface IUserService {
     ResponseEntity<?> resetPassword(ResetPasswordDTO resetPasswordDTO);
     ResponseEntity<?> forgetPassword(String email);
     void deleteUser(String email);
+    User getMe();
 }

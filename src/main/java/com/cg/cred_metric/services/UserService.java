@@ -12,6 +12,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,6 +41,14 @@ public class UserService implements IUserService {
     OTPGenerator otpGenerator;
 
     String otp="";
+
+    @Override
+    public User getMe() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String username = auth.getName();
+        User user = userRespository.findByEmail(username).orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + username));
+        return user;
+    }
 
     @Override
     public ResponseEntity<AuthResponseDTO> registerUser(RegisterDTO registerDTO) {
