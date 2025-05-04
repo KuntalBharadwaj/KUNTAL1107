@@ -24,6 +24,8 @@ public class User implements UserDetails {
     private String name;
     private String email;
     private String password;
+
+    @JsonIgnore
     private String token;
     private LocalDate dateOfBirth;
 
@@ -64,37 +66,44 @@ public class User implements UserDetails {
     }
 
     @Override
+    @JsonIgnore
     public Collection<? extends GrantedAuthority> getAuthorities() {
         // Return roles or authorities for the user
         return null; // For example, roles/permissions
     }
 
     @Override
+    @JsonIgnore
     public String getPassword() {
         return this.password;
     }
 
     @Override
+    @JsonIgnore
     public String getUsername() {
         return this.email;
     }
 
     @Override
+    @JsonIgnore
     public boolean isAccountNonExpired() {
         return true; // Logic for account expiration
     }
 
     @Override
+    @JsonIgnore
     public boolean isAccountNonLocked() {
         return true; // Logic for account lock
     }
 
     @Override
+    @JsonIgnore
     public boolean isCredentialsNonExpired() {
         return true; // Logic for credential expiration
     }
 
     @Override
+    @JsonIgnore
     public boolean isEnabled() {
         return true; // Logic for account enabling/disabling (you can modify based on your requirements)
     }

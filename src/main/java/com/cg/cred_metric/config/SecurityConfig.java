@@ -25,7 +25,7 @@ public class SecurityConfig {
         http.csrf(csrf-> csrf.disable())
                 .authorizeHttpRequests(auth-> auth
                         .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers("/auth/change-password").authenticated()
+                        .requestMatchers("/auth/change-password", "/auth/loggedIn").authenticated()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex-> ex.authenticationEntryPoint(jwtAuthenticationEntryPoint))

@@ -2,6 +2,7 @@ package com.cg.cred_metric.controllers;
 
 
 import com.cg.cred_metric.dtos.*;
+import com.cg.cred_metric.models.User;
 import com.cg.cred_metric.services.IUserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,13 @@ public class AuthController {
     @GetMapping("/health-check")
     public String healthCheck() {
         return "Everthing working fine in auth";
+    }
+
+
+    // Get me
+    @GetMapping("/loggedIn")
+    public User getCurrentUser() {
+            return userService.getMe();
     }
 
     // Register API
@@ -65,5 +73,7 @@ public class AuthController {
             return ResponseEntity.status(404).body("Error: " + e.getMessage());
         }
     }
+
+
 
 }
