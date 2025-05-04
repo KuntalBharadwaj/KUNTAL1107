@@ -51,4 +51,6 @@ public class Loan {
         SECURED,
         UNSECURED
     }
+
+    private boolean reminderSent = false;
 }

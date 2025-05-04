@@ -28,6 +28,7 @@ public class CreditCardService {
 
     @Autowired
     private MailService mailService;
+
     // Add a new credit card
     @Transactional
     public CreditCard addCreditCard(String email, CreditCardDTO creditCardDTO) {
@@ -70,7 +71,7 @@ public class CreditCardService {
         return creditCard;
     }
 
-     //Update an existing credit card
+    //Update an existing credit card
     @Transactional
     public CreditCard updateCreditCard(Long cardId, String email, CreditCardDTO creditCardDTO) {
 
@@ -94,12 +95,13 @@ public class CreditCardService {
         creditCard.setCardBillAmount(billDueAmount);
         creditCard.setBillDueDate(creditCardDTO.getBillDueDate());
 
-        return creditCardRepository.save(creditCard);
+        // Reset reminder sent for next due date
+        creditCard.setReminderSent(false);
 
+        return creditCardRepository.save(creditCard);
     }
 
     // Fetch credit card details for a specific user
-
     public List<CreditCard> getCreditCardsForUser(String email) {
         User user = userRespository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -124,6 +126,8 @@ public class CreditCardService {
         creditCardRepository.deleteByUser(user);
     }
 
+    // To delete credit card for user by using credit card ID
+    @Transactional
     public boolean deleteCreditCardForUser(Long cardId, String userEmail) {
         Optional<CreditCard> optionalCreditCard = creditCardRepository.findById(cardId);
 
@@ -138,4 +142,3 @@ public class CreditCardService {
         return true;
     }
 }
-

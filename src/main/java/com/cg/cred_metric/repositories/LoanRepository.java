@@ -13,4 +13,6 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
     List<Loan> findByUser(User user);
     long countByUserAndStartDateAfter(User user, LocalDate sinceDate);
     void deleteByUser(User user);
+
+    List<Loan> findByEmiDueDateBetweenAndReminderSentFalse(LocalDate startDate, LocalDate endDate);
 }

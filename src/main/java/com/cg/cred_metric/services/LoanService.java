@@ -120,6 +120,9 @@ public class LoanService {
 
         mailService.sendMail(user.getEmail(), "📝 Loan Updated Successfully", updateMessage);
 
+        // Reset reminder sent for next due date
+        loan.setReminderSent(false);
+
         return loanRepository.save(loan);
     }
 
@@ -131,6 +134,8 @@ public class LoanService {
         loanRepository.deleteByUser(user);
     }
 
+    // To delete loan for user by using loan ID
+    @Transactional
     public boolean deleteLoanForUser(Long loanId, String userEmail) {
         Optional<Loan> optionalLoan = loanRepository.findById(loanId);
 

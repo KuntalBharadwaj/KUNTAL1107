@@ -40,4 +40,6 @@ public class CreditCard {
     private Double cardBillAmount;
 
     private LocalDate billDueDate;
+
+    private boolean reminderSent = false;
 }
