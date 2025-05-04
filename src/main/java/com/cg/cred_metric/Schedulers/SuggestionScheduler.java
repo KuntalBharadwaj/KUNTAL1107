@@ -10,6 +10,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.ArrayList;
@@ -41,14 +42,15 @@ public class SuggestionScheduler {
     private MailService mailService;
 
     // Scheduled to run every 1 minutes for testing
-    //@Scheduled(cron = "0 0/2 * * * ?")
+    // @Scheduled(cron = "0 0/1 * * * ?")
     // Scheduled to run at the beginning of each month
-    //@Scheduled(cron = "0 0 1 1 * ?")
+     @Scheduled(cron = "0 0 1 1 * ?")
     public void generateMonthlySuggestions() {
         log.info("Starting the suggestion generation process...");
 
         List<User> allUsers = userRespository.findAll();
-        YearMonth lastMonth = YearMonth.now().minusMonths(1);
+        // YearMonth lastMonth = YearMonth.now().minusMonths(1);
+         YearMonth lastMonth = YearMonth.parse("2025-06");
 
         log.info("Last month: " + lastMonth);
 
@@ -69,6 +71,8 @@ public class SuggestionScheduler {
             // Process Loan Suggestions
             processLoanSuggestions(user, suggestionsList, startDate, endDate);
 
+
+            log.info("Processing Credit suggestions for user ID: {}", user.getUserId());
             // Process Credit Card Suggestions
             processCreditCardSuggestions(user, suggestionsList, startDate, endDate);
 
@@ -97,6 +101,8 @@ public class SuggestionScheduler {
         for (Loan loan : userLoans) {
             log.info("Checking missed repayments for Loan ID: {}", user.getUserId());
 
+            int repaymentCount = repaymentRepository.countByPaymentDateBetweenAndRepaymentTypeID(startDate, endDate, loan.getLoanId());
+            log.info("Repayment count: {}", repaymentCount);
             long missedCount = repaymentRepository
                     .countByUserAndRepaymentTypeAndRepaymentTypeIDAndRepaymentStatusAndPaymentDateBetween(
                             user,
@@ -111,11 +117,17 @@ public class SuggestionScheduler {
             if (missedCount > 0) {
                 suggestionsList.add("Pay, Your EMI(s) on time to avoid late fees and negative credit score impact.");
             }
+            else if (repaymentCount > 0) {
+                suggestionsList.add("Paid EMI on time, this help to increase credit score");
+            }
         }
     }
 
     private void processCreditCardSuggestions(User user, List<String> suggestionsList, LocalDate startDate, LocalDate endDate) {
+         log.info("Checking missed repayments for Credit Card ID: {}", user.getUserId());
         List<CreditCard> userCreditCards = creditCardRepository.findByUser(user);
+
+        log.info(userCreditCards.size() + " credit cards found.");
 
         for (CreditCard card : userCreditCards) {
             log.info("Checking missed repayments for Card ID: {}", user.getUserId());
@@ -131,16 +143,22 @@ public class SuggestionScheduler {
             log.info("Missed count for Card ID {}: {}", card.getCardId(), missedCount);
 
             if (missedCount > 0) {
-                suggestionsList.add("Pay your credit card bill(s) on time to avoid late fees and high interest charges.");
+                suggestionsList.add("Pay your credit card bill(s) on time, so your credit score not decrease");
             }
 
             // Check Credit Card Utilization Ratio
-            BigDecimal currentBalance = card.getCurrentBalance();
-            BigDecimal creditLimit = card.getCreditLimit();
-            if (creditLimit != null && creditLimit.compareTo(BigDecimal.ZERO) > 0 && currentBalance != null) {
-                BigDecimal utilizationRatio = currentBalance.divide(creditLimit, 2, BigDecimal.ROUND_HALF_UP); // Calculate to 2 decimal places
+            BigDecimal currentBalance = card.getCurrentBalance(); // remaining paisa
+            BigDecimal creditLimit = card.getCreditLimit();       // total limit
+
+            if (creditLimit != null && creditLimit.compareTo(BigDecimal.ZERO) > 0) {
+                BigDecimal utilizedAmount = creditLimit.subtract(currentBalance);
+                BigDecimal utilizationRatio = utilizedAmount.divide(creditLimit, 2, RoundingMode.HALF_UP);
+
+                log.info("Utilization ratio for card {} : {}", card.getCardId(), utilizationRatio);
+
                 if (utilizationRatio.compareTo(new BigDecimal("0.30")) > 0) {
-                    suggestionsList.add("Keep your credit utilization ratio below 30% to maintain a good credit score. Your current utilization is " + utilizationRatio.multiply(new BigDecimal("100")) + "%");
+                    suggestionsList.add("Keep your credit utilization ratio below 30% to maintain a good credit score. Your current utilization of card id : "
+                            + card.getCardId() + " is:  " + utilizationRatio.multiply(new BigDecimal("100")) + "%");
                 }
             }
         }
