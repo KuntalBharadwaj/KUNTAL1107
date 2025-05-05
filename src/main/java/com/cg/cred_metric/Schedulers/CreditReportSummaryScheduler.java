@@ -43,7 +43,7 @@ public class CreditReportSummaryScheduler {
 
                 if (report != null && report.length > 0) {
                     String subject = "Your Credit Report Summary for " + lastMonth.getMonth() + " " + lastMonth.getYear();
-                    String body = "Dear " + user.getName() + ",\n\nPlease find attached your credit report summary for " + lastMonth.getMonth() + " " + lastMonth.getYear() + ".\n\nRegards,\nCredit Metrics Team";
+                    String body = "Dear " + user.getName() + ",\n\nPlease find the attached credit report summary for " + lastMonth.getMonth() + " " + lastMonth.getYear() + ".\n\nWarm Regards,\nTeam Cred-Metric";
 
                     mailService.sendEmailWithAttachment(user.getEmail(), subject, body, report, "CreditReport_" + lastMonth + ".pdf");
 

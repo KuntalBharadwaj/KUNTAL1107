@@ -42,15 +42,15 @@ public class SuggestionScheduler {
     private MailService mailService;
 
     // Scheduled to run every 1 minutes for testing
-    // @Scheduled(cron = "0 0/1 * * * ?")
+     //@Scheduled(cron = "0 0/1 * * * ?")
     // Scheduled to run at the beginning of each month
      @Scheduled(cron = "0 0 1 1 * ?")
     public void generateMonthlySuggestions() {
         log.info("Starting the suggestion generation process...");
 
         List<User> allUsers = userRespository.findAll();
-        // YearMonth lastMonth = YearMonth.now().minusMonths(1);
-         YearMonth lastMonth = YearMonth.parse("2025-06");
+         YearMonth lastMonth = YearMonth.now().minusMonths(1);
+         //YearMonth lastMonth = YearMonth.parse("2025-08");
 
         log.info("Last month: " + lastMonth);
 

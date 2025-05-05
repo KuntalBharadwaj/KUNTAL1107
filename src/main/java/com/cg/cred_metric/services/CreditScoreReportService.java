@@ -86,9 +86,25 @@ public class CreditScoreReportService {
         document.add(Chunk.NEWLINE);
 
         // Suggestions
+//        document.add(new Paragraph("Suggestions", subHeader));
+//        if (suggestion != null) {
+//            document.add(new Paragraph(suggestion.getSuggestions(), normal));
+//        } else {
+//            document.add(new Paragraph("No suggestions available for this month.", normal));
+//        }
+
         document.add(new Paragraph("Suggestions", subHeader));
         if (suggestion != null) {
-            document.add(new Paragraph(suggestion.getSuggestions(), normal));
+            String allSuggestions = suggestion.getSuggestions();
+            allSuggestions = allSuggestions.substring(1, allSuggestions.length());
+            String[] lines = allSuggestions.split("\","); // Split by newline character
+            int n = lines.length;
+            for (String line : lines) {
+                n--;
+                if(n == 0) line = line.substring(1, line.length()-2);
+                else line = line.substring(1,line.length());
+                document.add(new Paragraph(line.trim(), normal)); // Add each line as a new paragraph, trim whitespace
+            }
         } else {
             document.add(new Paragraph("No suggestions available for this month.", normal));
         }
