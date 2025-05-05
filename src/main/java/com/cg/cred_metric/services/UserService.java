@@ -40,16 +40,23 @@ public class UserService implements IUserService {
     @Autowired
     OTPGenerator otpGenerator;
 
-    String otp="";
+    // Stores OTP temporarily for password reset
+    String otp = "";
 
+    /*
+     * Retrieves the currently authenticated user based on the security context.
+     */
     @Override
     public User getMe() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String username = auth.getName();
-        User user = userRespository.findByEmail(username).orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + username));
-        return user;
+        return userRespository.findByEmail(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + username));
     }
 
+    /*
+     * Registers a new user after performing validations on email and age.
+     */
     @Override
     public ResponseEntity<AuthResponseDTO> registerUser(RegisterDTO registerDTO) {
         // Check if user with the given email already exists
@@ -62,30 +69,24 @@ public class UserService implements IUserService {
 
         log.info(registerDTO.toString());
 
-        // Validate the date of birth (check if the user is at least 18)
+        // Validate date of birth
         LocalDate dob = registerDTO.getDateOfBirth();
+        if (dob == null) {
+            throw new InvalidDateFormatException("Date of birth is required.");
+        }
+        if (Period.between(dob, LocalDate.now()).getYears() < 18) {
+            throw new InvalidDateFormatException("User must be at least 18 years old.");
+        }
 
-        // Validate the date format and check age
-            if (dob == null) {
-                throw new InvalidDateFormatException("Date of birth is required.");
-            }
-            // Check if the user is at least 18 years old
-            if (Period.between(dob, LocalDate.now()).getYears() < 18) {
-                throw new InvalidDateFormatException("User must be at least 18 years old.");
-            }
-
-        // Create new user
+        // Create and save new user
         User user = new User();
         user.setName(registerDTO.getName());
-        String encodedPassword = passwordEncoder.encode(registerDTO.getPassword());
-        user.setPassword(encodedPassword);
+        user.setPassword(passwordEncoder.encode(registerDTO.getPassword()));
         user.setEmail(registerDTO.getEmail());
         user.setDateOfBirth(dob);
-
-        // Save user
         userRespository.save(user);
 
-        // log.info("User created" + user);
+        // Send welcome email
         String subject = "Welcome to Cred Metric!";
         String body = "🎉 Welcome to Cred Metric! 🎉"
                 + "\n\nThank you for registering with Cred Metric!"
@@ -96,136 +97,129 @@ public class UserService implements IUserService {
                 + "\nTeam Cred Metric";
         mailService.sendMail(registerDTO.getEmail(), subject, body);
 
-        // Return success response
         return new ResponseEntity<>(
                 new AuthResponseDTO("User registered successfully, with user id: ", user.getUserId()),
                 HttpStatus.CREATED
         );
     }
 
+    /*
+     * Authenticates user using email and password, returns JWT on success.
+     */
     @Override
     public ResponseEntity<AuthResponseDTO> loginUser(LoginDTO loginDTO) {
-
-        User user = userRespository.findByEmail(loginDTO.getEmail()).orElseThrow(() -> new ResourceNotFoundException( "User not found Exception " + loginDTO.getEmail()));
+        User user = userRespository.findByEmail(loginDTO.getEmail())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found Exception " + loginDTO.getEmail()));
 
         if (!passwordEncoder.matches(loginDTO.getPassword(), user.getPassword())) {
             return new ResponseEntity<>(new AuthResponseDTO("Invalid Password", ""), HttpStatus.UNAUTHORIZED);
         }
 
+        // Generate JWT and save
         String token = jwtUtils.createJWTToken(user.getEmail());
-
         user.setToken(token);
         userRespository.save(user);
 
+        // Send login confirmation email
         String loginMessage = "Hi, " + user.getName() + "!"
                 + "\n\nYou're all set and logged in to Cred Metric! 🎉"
                 + "\n\nWe’re excited to have you back."
-                + "\n\nIf this wasn't you, please reach out immediately to secure your account. We take your security seriously."
-                + "\n\nFeel free to explore your dashboard and make the most out of your account."
-                + "\nHappy exploring! 🚀"
+                + "\n\nIf this wasn't you, please reach out immediately to secure your account."
+                + "\n\nHappy exploring! 🚀"
                 + "\n\nWarm Regards,"
                 + "\nTeam Cred Metric";
-
         mailService.sendMail(user.getEmail(), "Your Cred Metric Login Was Successful!", loginMessage);
 
-        AuthResponseDTO responseDTO = new AuthResponseDTO("Login successful", token);
-        return new ResponseEntity<>(responseDTO, HttpStatus.OK);
+        return new ResponseEntity<>(new AuthResponseDTO("Login successful", token), HttpStatus.OK);
     }
 
+    /*
+     * Changes the password for a given user after validating old password and new inputs.
+     */
     @Override
     public ResponseEntity<ChangePasswordResponseDTO> changePassword(String email, ChangePasswordRequestDTO request) {
-        User user = userRespository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException( "User not found Exception " + email));
+        User user = userRespository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found Exception " + email));
 
-        // 1. Old password check
         if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
             return new ResponseEntity<>(new ChangePasswordResponseDTO(400, "Old password is incorrect"), HttpStatus.BAD_REQUEST);
         }
 
-        // 2. New password same as old
         if (request.getOldPassword().equals(request.getNewPassword())) {
             return new ResponseEntity<>(new ChangePasswordResponseDTO(400, "New password should not be same as old password"), HttpStatus.BAD_REQUEST);
         }
 
-        // 3. Confirm password mismatch
         if (!request.getNewPassword().equals(request.getConfirmPassword())) {
             return new ResponseEntity<>(new ChangePasswordResponseDTO(400, "New password and confirm password do not match"), HttpStatus.BAD_REQUEST);
         }
 
-        // All validations passed, update password
+        // Update password
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRespository.save(user);
 
-        // Mail service for Change Password
+        // Send confirmation email
         String changePasswordMessage = "Hi, " + user.getName() + "!"
                 + "\n\nYour password has been changed successfully!"
-                + "\n\nYou're all set! Your account is now secured with your new password. 🔐"
-                + "\n\nIf this wasn't you, please reach out immediately to secure your account. We take your security seriously."
-                + "\n\nThank you for trusting Cred Metric for your Financial journey!"
-                + "\nHappy exploring!🚀"
+                + "\n\nIf this wasn't you, please contact us immediately."
                 + "\n\nWarm Regards,"
                 + "\nTeam Cred Metric";
-
         mailService.sendMail(user.getEmail(), "Your password has been changed successfully!", changePasswordMessage);
+
         return new ResponseEntity<>(new ChangePasswordResponseDTO(200, "Password changed successfully"), HttpStatus.OK);
     }
 
-
+    /*
+     * Sends OTP to user's email for resetting password.
+     */
     @Override
     public ResponseEntity<?> forgetPassword(String email) {
-
         log.info("Forget password email: " + email);
 
-        // Check user exist hai ya nhi
-        User user = userRespository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException( "User not found with email " + email));
+        User user = userRespository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email " + email));
 
-        log.info(String.valueOf(user));
-
-
-        //User Exist krta hai otp generate krke email pr bhejo
+        // Generate and send OTP
         otp = otpGenerator.generateOTP();
-        String token = jwtUtils.createJWTToken(email);
-
         mailService.sendMail(email, "OTP generated", "OTP to reset password is: " + otp);
 
-        return new ResponseEntity<>(new AuthResponseDTO("OTP generated  ", otp), HttpStatus.OK);
-
+        return new ResponseEntity<>(new AuthResponseDTO("OTP generated", otp), HttpStatus.OK);
     }
 
+    /*
+     * Resets the password after verifying OTP and confirming new password.
+     */
     @Override
     public ResponseEntity<?> resetPassword(ResetPasswordDTO resetPasswordDTO) {
         String email = resetPasswordDTO.getEmail();
 
-        // Check user exist hai ya nhi
-        User user = userRespository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException( "User not found with email " + email));
+        User user = userRespository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email " + email));
 
-
-        //Verify OTP
-        if(!otp.equals(resetPasswordDTO.getOtp())){
+        if (!otp.equals(resetPasswordDTO.getOtp())) {
             throw new ResourceNotFoundException("OTP doesn't match");
         }
 
-        // New Pass ko encode krna hai
-        if(!resetPasswordDTO.getNewPassword().equals(resetPasswordDTO.getConfirmPassword())){
+        if (!resetPasswordDTO.getNewPassword().equals(resetPasswordDTO.getConfirmPassword())) {
             throw new ResourceNotFoundException("Confirm password doesn't match");
         }
 
-        String encodedNewPassword = passwordEncoder.encode(resetPasswordDTO.getNewPassword());
-
-        user.setPassword(encodedNewPassword);
-
+        // Encode and save new password
+        user.setPassword(passwordEncoder.encode(resetPasswordDTO.getNewPassword()));
         userRespository.save(user);
-
-        otp="";
+        otp = "";
 
         mailService.sendMail(email, "Password Request", "Password changed successfully.");
-        return new ResponseEntity<>(new AuthResponseDTO("Reset password successful", user.getUserId()), HttpStatus.OK);
 
+        return new ResponseEntity<>(new AuthResponseDTO("Reset password successful", user.getUserId()), HttpStatus.OK);
     }
 
-    // Delete User by Email
+    /*
+     * Deletes a user by their email.
+     */
     @Transactional
     public void deleteUser(String email) {
-        User user = userRespository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
+        User user = userRespository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
         userRespository.delete(user);
     }
 }

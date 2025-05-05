@@ -25,9 +25,13 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Objects;
 
+/**
+ * Service class to handle creation of repayments for loans or credit cards.
+ */
 @Service
 @Slf4j
 public class RepaymentService implements IRepaymentService {
+
     @Autowired
     private RepaymentRepository repaymentRepository;
 
@@ -43,15 +47,25 @@ public class RepaymentService implements IRepaymentService {
     @Autowired
     private CreditCardRepository creditCardRepository;
 
+    /**
+     * Creates a repayment based on the repayment type (loan or credit card).
+     *
+     * @param email               Email of the user making the repayment.
+     * @param repaymentRequestDTO DTO containing repayment details.
+     * @return ResponseEntity containing repayment details and next due date.
+     */
     @Override
     @Transactional
     public ResponseEntity<RepaymentResponseDTO> createRepayment(String email, RepaymentRequestDTO repaymentRequestDTO) {
+
+        // Retrieve user by email
         User user = userRespository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
 
-        Object repaymentSource = null; // To hold either Loan or CreditCard
+        Object repaymentSource = null;
         LocalDate dueDate = null;
 
+        // Handle loan repayment
         if (repaymentRequestDTO.getRepaymentType() == Repayment.RepaymentType.LOAN) {
             Loan loan = loanRepository.findById(repaymentRequestDTO.getRepaymentTypeID())
                     .orElseThrow(() -> new ResourceNotFoundException("Loan not found with ID: " + repaymentRequestDTO.getRepaymentTypeID()));
@@ -70,24 +84,25 @@ public class RepaymentService implements IRepaymentService {
                 throw new InvalidInputException("Amount paid must be equal to EMI amount: " + loan.getEmiAmount());
             }
 
+            // Get current due date and update it for the next cycle
             dueDate = loan.getEmiDueDate();
-            // Update loan EMI due date
             loan.setEmiDueDate(loan.getEmiDueDate().plusMonths(1));
 
-            // Check if all EMIs are paid and mark loan as closed
+            // Close the loan if end date has passed
             if (loan.getEmiDueDate().isAfter(loan.getEndDate())) {
-                loan.setStatus(Loan.LoanStatus.CLOSED);  // Mark loan as closed
+                loan.setStatus(Loan.LoanStatus.CLOSED);
             }
 
             loanRepository.save(loan);
         }
+
+        // Handle credit card repayment
         else if (repaymentRequestDTO.getRepaymentType() == Repayment.RepaymentType.CREDIT_CARD) {
             CreditCard creditCard = creditCardRepository.findById(repaymentRequestDTO.getRepaymentTypeID())
                     .orElseThrow(() -> new RuntimeException("CreditCard not found with ID: " + repaymentRequestDTO.getRepaymentTypeID()));
 
             repaymentSource = creditCard;
 
-            // Check if credit card is active, no further repayment should be allowed if card has expired
             if (creditCard.getExpiryDate().isBefore(LocalDate.now())) {
                 throw new InvalidInputException("The credit card has expired.");
             }
@@ -100,25 +115,27 @@ public class RepaymentService implements IRepaymentService {
                 throw new InvalidInputException("Amount paid must be equal to Card Bill Amount: " + creditCard.getCardBillAmount());
             }
 
+            // Update bill due date and balances
             dueDate = creditCard.getBillDueDate();
-            // Update credit card bill due date
             creditCard.setBillDueDate(creditCard.getBillDueDate().plusMonths(1));
             creditCard.setCardBillAmount(repaymentRequestDTO.getAmountPaid() - creditCard.getCardBillAmount());
             creditCard.setCurrentBalance(creditCard.getCurrentBalance().add(BigDecimal.valueOf(repaymentRequestDTO.getAmountPaid())));
 
             creditCardRepository.save(creditCard);
         }
+
+        // Handle invalid repayment type
         else {
             throw new InvalidInputException("Invalid repayment type: " + repaymentRequestDTO.getRepaymentTypeID());
         }
 
+        // Determine repayment status
         LocalDate paidDate = repaymentRequestDTO.getPaymentDate();
-
         Repayment.RepaymentStatus status = paidDate.isAfter(dueDate)
                 ? Repayment.RepaymentStatus.MISSED
                 : Repayment.RepaymentStatus.ONTIME;
 
-        // Create and save repayment
+        // Create and save repayment record
         Repayment repayment = new Repayment();
         repayment.setUser(user);
         repayment.setRepaymentType(repaymentRequestDTO.getRepaymentType());
@@ -128,7 +145,7 @@ public class RepaymentService implements IRepaymentService {
         repayment.setAmountPaid(repaymentRequestDTO.getAmountPaid());
         repaymentRepository.save(repayment);
 
-        // Send Email
+        // Compose email message
         String repaymentMessage = "Repayment Created Successfully!\n\n" +
                 "Hi " + user.getName() + ",\n\n" +
                 "Your repayment has been successfully added in Cred Metric.\n\n" +
@@ -139,10 +156,10 @@ public class RepaymentService implements IRepaymentService {
                 "Repayment Status: " + status + "\n" +
                 "Repayment Amount Paid: " + repaymentRequestDTO.getAmountPaid();
 
+        // Append next due date info
         if (repaymentSource instanceof Loan) {
             repaymentMessage += "\nNext EMI Due Date: " + ((Loan) repaymentSource).getEmiDueDate();
-        }
-        else if (repaymentSource instanceof CreditCard) {
+        } else if (repaymentSource instanceof CreditCard) {
             repaymentMessage += "\nNext Bill Due Date: " + ((CreditCard) repaymentSource).getBillDueDate();
         }
 
@@ -150,8 +167,10 @@ public class RepaymentService implements IRepaymentService {
                 "Warm regards,\n" +
                 "Cred Metric Team";
 
+        // Send repayment confirmation email
         mailService.sendMail(user.getEmail(), "Your repayment has been created successfully", repaymentMessage);
 
+        // Return response with next due date info
         return new ResponseEntity<>(
                 new RepaymentResponseDTO(
                         repayment,
@@ -161,6 +180,5 @@ public class RepaymentService implements IRepaymentService {
                 ),
                 HttpStatus.CREATED
         );
-
     }
 }

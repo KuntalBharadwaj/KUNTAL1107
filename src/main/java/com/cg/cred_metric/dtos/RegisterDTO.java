@@ -18,6 +18,10 @@ public class RegisterDTO {
     private String email;
 
     @NotBlank(message = "Password is required")
+    @Pattern(
+            regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{6,}$",
+            message = "Password must be at least 6 characters long and include at least one uppercase letter, one lowercase letter, one digit, and one special character (@$!%*?&)."
+    )
     private String password;
 
     @NotNull(message = "Date of birth is required.")
